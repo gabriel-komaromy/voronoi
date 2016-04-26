@@ -1,0 +1,6 @@
+proposal*
+*.log
+*.aux
+*.bbl
+*.blg
+*.sh
