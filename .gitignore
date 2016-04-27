@@ -4,3 +4,6 @@ proposal*
 *.bbl
 *.blg
 *.sh
+*.pyc
+*.swp
+*.pdf
