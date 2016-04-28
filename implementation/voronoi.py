@@ -1,10 +1,12 @@
 import heapq
+from enum import Enum
 
 
 class Point(object):
-    def __init__(self, x, y):
+    def __init__(self, x, y, point_type):
         self.x = x
         self.y = y
+        self.point_type = point_type
 
     def __cmp__(self, other):
         """The sweepline moves up the plane, so we consider points
@@ -15,10 +17,17 @@ class Point(object):
             return self.x - other.x
 
     def __eq__(self, other):
-        return self.y == other.y and self.x == other.x
+        return self.y == other.y and self.x == other.x and\
+            self.point_type == other.point_type
 
     def __str__(self):
-        return "(" + str(self.x) + ", " + str(self.y) + ")"
+        return "(" + str(self.x) + ", " + str(self.y) + "), type: " +\
+            str(self.point_type)
+
+
+class PointType(Enum):
+    SITE = 1
+    INTERSECTION = 2
 
 
 class LineSegment(object):
@@ -34,30 +43,15 @@ def create_diagram(points):
     # Lexicographical ordering of the data points
     ordered_points = list(points)
     heapq.heapify(ordered_points)
-    deleted_points = set()
-    deleted_points = delete_point(Point(1, 0), deleted_points)
-    print_undeleted_points(ordered_points, deleted_points)
+    new_point = Point(1, 2, PointType.INTERSECTION)
+    heapq.heappush(ordered_points, new_point)
+    print_points(ordered_points)
 
 
-def next_point(ordered_points, deleted_points):
-    while True:
-        popped_point = heapq.heappop(ordered_points)
-        if not is_deleted(popped_point, deleted_points):
-            break
-    return popped_point
+def next_point(ordered_points):
+    return heapq.heappop(ordered_points)
 
 
-def is_deleted(point, deleted_points):
-    return str(point) in deleted_points
-
-
-def delete_point(point, deleted_points):
-    deleted_points.add(str(point))
-    return deleted_points
-
-
-def print_undeleted_points(point_list, deleted_points):
+def print_points(point_list):
     while len(point_list) > 0:
-        next_point = heapq.heappop(point_list)
-        if not is_deleted(next_point, deleted_points):
-            print next_point
+        print heapq.heappop(point_list)
