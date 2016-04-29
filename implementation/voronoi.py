@@ -1,9 +1,9 @@
 import heapq
 
-from enum import Enum
-
 from data_structures import OpenList
 # from data_sturctures import EdgesList
+# from geometry import Point
+from geometry import PointType
 
 
 def create_diagram(points):
