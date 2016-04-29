@@ -12,7 +12,7 @@ class Point(object):
         """The sweepline moves up the plane, so we consider points
         with lower y first, and break ties in y by lower x first"""
         if self.y != other.y:
-            return self.y - other.y
+            return other.y - self.y
         else:
             return self.x - other.x
 
@@ -43,9 +43,10 @@ def create_diagram(points):
     # Lexicographical ordering of the data points
     ordered_points = list(points)
     heapq.heapify(ordered_points)
-    new_point = Point(1, 2, PointType.INTERSECTION)
-    heapq.heappush(ordered_points, new_point)
-    print_points(ordered_points)
+
+    while ordered_points:
+        current_point = next_point(ordered_points)
+        print current_point
 
 
 def next_point(ordered_points):
