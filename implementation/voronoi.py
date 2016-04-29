@@ -1,42 +1,9 @@
 import heapq
+
 from enum import Enum
 
-
-class Point(object):
-    def __init__(self, x, y, point_type):
-        self.x = x
-        self.y = y
-        self.point_type = point_type
-
-    def __cmp__(self, other):
-        """The sweepline moves up the plane, so we consider points
-        with lower y first, and break ties in y by lower x first"""
-        if self.y != other.y:
-            return other.y - self.y
-        else:
-            return self.x - other.x
-
-    def __eq__(self, other):
-        return self.y == other.y and self.x == other.x and\
-            self.point_type == other.point_type
-
-    def __str__(self):
-        return "(" + str(self.x) + ", " + str(self.y) + "), type: " +\
-            str(self.point_type)
-
-
-class PointType(Enum):
-    SITE = 1
-    INTERSECTION = 2
-
-
-class LineSegment(object):
-    def __init__(self, endpoints):
-        assert len(endpoints) == 2
-        self.endpoints = endpoints
-
-    def __str__(self):
-        return str(self.endpoints[0]) + " to " + str(self.endpoints[1])
+from data_structures import OpenList
+# from data_sturctures import EdgesList
 
 
 def create_diagram(points):
@@ -44,9 +11,13 @@ def create_diagram(points):
     ordered_points = list(points)
     heapq.heapify(ordered_points)
 
+    open_list = OpenList()
+    print open_list
+
     while ordered_points:
         current_point = next_point(ordered_points)
-        print current_point
+        if current_point.point_type is PointType.SITE:
+            pass
 
 
 def next_point(ordered_points):

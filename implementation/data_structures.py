@@ -1,15 +1,15 @@
-class DoublyLinkedList(object):
-    def __init__(self, root_endpoints, root_cell):
-        root = ListNode(root_endpoints, None, None, root_cell)
-        self.root = root
-        self.end = root
+class EdgesList(object):
+    def __init__(self, start_endpoints, start_cell):
+        start = EdgeNode(start_endpoints, None, None, start_cell)
+        self.start = start
+        self.end = start
 
     def insert(self, endpoints, twin, cell):
-        new_node = ListNode(endpoints, self.end, twin, cell)
+        new_node = EdgeNode(endpoints, self.end, twin, cell)
         self.end = new_node
 
 
-class ListNode(object):
+class EdgeNode(object):
     def __init__(self, endpoints, previous_edge, twin, cell):
         self.endpoints = endpoints
         self.previous_edge = previous_edge
@@ -22,34 +22,39 @@ class ListNode(object):
         self.cell = cell
 
 
-class BinarySearchTree(object):
-    def __init__(self, root_point):
-        self.root = LeafNode(root_point)
+class OpenList(object):
+    def __init__(self):
+        self.start = None
 
-    def insert(self, point):
-        current_node = self.root
-        while isinstance(current_node, InternalNode):
-            if current_node.lower_endpoint() 
+    def insert(self, new_point):
+        new_node = PointNode(new_point)
+        if self.start is None:
+            self.start = new_node
+            return
+        else:
+            self.update_breakpoints(new_point)
+            pass
+        """
+        if self.start.point.x > new_point.x:
+            old_start = self.start
+            new_node.next_node = old_start
+            old_start.previous_node = new_node
+            """
+        print new_node
+
+    def update_breakpoints(self, new_point):
+        pass
 
 
-class LeafNode(object):
+class PointNode(object):
     def __init__(self, point):
         self.point = point
+        self.previous_node = None
+        self.next_node = None
+        self.left_region = None
+        self.right_region = None
 
 
-class InternalNode(object):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-
-    def lower_endpoint(self):
-        current_node = self.left
-        while isinstance(current_node, InternalNode):
-            current_node = current_node.right
-        return current_node.point
-
-    def higher_endpoint(self):
-        current_node = self.right
-        while isinstance(current_node, InternalNode):
-            current_node = current_node.left
-        return current_node.point
+class Region(object):
+    def __init__(self, edge):
+        self.edge = edge
