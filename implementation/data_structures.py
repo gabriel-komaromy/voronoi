@@ -51,14 +51,54 @@ class OpenList(object):
             sweep_y = new_site.y
             next_node = current_node.next_node
             while next_node is not None:
-                new_intersection = geometry.breakpoint(
+                intersections = geometry.breakpoint(
                     current_node.site,
                     next_node.site,
                     sweep_y,
                     )
+                new_intersection = self.current_intersection(
+                    current_node,
+                    next_node,
+                    intersections,
+                    )
                 current_node.set_right_endpoint(new_intersection)
                 current_node = next_node
                 next_node = next_node.next_node
+
+    def current_intersection(
+            self,
+            current_node,
+            next_node,
+            intersections,
+            ):
+        if len(intersections) == 1:
+            # if there's only one intersection
+            # then current and next are at same y
+            new_intersection = intersections[0]
+        elif len(intersections) > 1:
+            if intersections[0].x == intersections[1].x:
+                # vertical from one of the sites, don't
+                # do anything about it for now
+                assert intersections[0].x ==\
+                    current_node.site.x or\
+                    intersections[0].x == next_node.site.x,\
+                    "equal x intersections and neither above\
+                    one of the sites"
+                new_intersection = intersections[0]
+            else:
+                current_y = current_node.site.y
+                """The higher site handles the left
+                intersection, the lower site handles
+                the right intersection"""
+                if current_y > next_node.site.y:
+                    new_intersection = intersections[0]
+                else:
+                    new_intersection = intersections[1]
+
+        else:
+            raise ValueError("too many or too few intersections")
+
+        return new_intersection
 
 
 class SiteNode(object):

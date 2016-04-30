@@ -46,6 +46,11 @@ def breakpoint(a, b, sweep_y):
     assert a.y != 0 or b.y != 0,\
         "Need to handle both on sweepline I guess"
 
+    """If the points are horizontally collinear, this returns a list of length 1.
+    If they are not, it returns a list of length 2. This would appear to
+    oversimplify the problem, but the geometry actually works out favorably for
+    us now: any two points with the same y will have equal derivative at any
+    time point."""
     if a.y != b.y:
         numerator_beginning = float(a.y * b.x)
         numerator_end = math.sqrt(a.y * b.y * ((a.y - b.y) ** 2 + b.x ** 2))
@@ -66,10 +71,11 @@ def breakpoint(a, b, sweep_y):
             pol = point_off_line(a, b)
             intersections_y = [parabola_y(pol, intersections_x[0])] * 2
 
-        return [
+        output_list = [
             Point(intersections_x[0], intersections_y[0]),
             Point(intersections_x[1], intersections_y[1]),
             ]
+        assert output_list[0].x <= output_list[1].x, "break points not sorted"
 
     else:
         breakpoint_x = float(b.x - a.x) / 2
@@ -78,10 +84,12 @@ def breakpoint(a, b, sweep_y):
 
         breakpoint_y = parabola_y(pol, breakpoint_x)
 
-        return [Point(
+        output_list = [Point(
             breakpoint_x,
             breakpoint_y,
             )]
+
+    return output_list
 
 
 def point_off_line(a, b):

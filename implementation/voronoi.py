@@ -68,7 +68,7 @@ def insert_site(open_list, edges_list, new_site):
                 """
                 current_site = current_node.site
                 new_left_node = SiteNode(current_site)
-                # TODO handle the edge list crap later
+                # TODO handle the edge list crap
                 """ idea: the site that an edge holds is
                 the edge that its PointNode points to.
                 Would have to update edges in both directions
