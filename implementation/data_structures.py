@@ -1,60 +1,76 @@
-class EdgesList(object):
-    def __init__(self, start_endpoints, start_cell):
-        start = EdgeNode(start_endpoints, None, None, start_cell)
-        self.start = start
-        self.end = start
+import geometry
 
-    def insert(self, endpoints, twin, cell):
-        new_node = EdgeNode(endpoints, self.end, twin, cell)
-        self.end = new_node
+
+class EdgesList(object):
+    def __init__(self):
+        self.start = None
+        self.end = self.start
+
+    def insert(self, start_point, site):
+        if self.start is None:
+            self.start = EdgeNode(
+                start_point,
+                None,
+                site,
+                )
+            self.end = self.start
+            return self.start
+
+        else:
+            new_node = EdgeNode(start_point, self.end, site)
+            self.end = new_node
+            return new_node
 
 
 class EdgeNode(object):
-    def __init__(self, endpoints, previous_edge, twin, cell):
-        self.endpoints = endpoints
+    def __init__(self, start_point, previous_edge, site):
+        self.start_point = start_point
+        self.end_point = None
         self.previous_edge = previous_edge
         self.next_edge = None
         if self.previous_edge is not None:
             self.previous_edge.next_edge = self
-        self.twin = twin
+        self.twin = None
+        """
         if self.twin is not None:
             self.twin.twin = self
-        self.cell = cell
+            """
+        self.site = site
 
 
 class OpenList(object):
+    """Stores the arcs on the beach line"""
     def __init__(self):
         self.start = None
 
-    def insert(self, new_point):
-        new_node = PointNode(new_point)
-        if self.start is None:
-            self.start = new_node
-            return
-        else:
-            self.update_breakpoints(new_point)
+    def update_moving_edges(self, new_site):
+        current_node = self.start
+        if current_node is None:
             pass
-        """
-        if self.start.point.x > new_point.x:
-            old_start = self.start
-            new_node.next_node = old_start
-            old_start.previous_node = new_node
-            """
-        print new_node
+        else:
+            sweep_y = new_site.y
+            next_node = current_node.next_node
+            while next_node is not None:
+                new_intersection = geometry.breakpoint(
+                    current_node.site,
+                    next_node.site,
+                    sweep_y,
+                    )
+                current_node.set_right_endpoint(new_intersection)
+                current_node = next_node
+                next_node = next_node.next_node
 
-    def update_breakpoints(self, new_point):
-        pass
 
-
-class PointNode(object):
-    def __init__(self, point):
-        self.point = point
+class SiteNode(object):
+    def __init__(self, site):
+        self.site = site
         self.previous_node = None
         self.next_node = None
-        self.left_region = None
-        self.right_region = None
+        self.left_edge = None
+        self.right_edge = None
 
+    def right_endpoint(self):
+        return self.right_edge.edge.end_point
 
-class Region(object):
-    def __init__(self, edge):
-        self.edge = edge
+    def set_right_endpoint(self, new_point):
+        self.right_edge.edge.end_point = new_point

@@ -21,49 +21,76 @@ def shift_coordinates(func):
             right_point.y - y_offset,
             )
 
-        output_point = func(left_point, right_point, sweep_y)
+        output_list = func(left_point, right_point, sweep_y)
 
         """Apply inverse transformation to breakpoint"""
-        output_point = Point(
-            output_point.x + x_offset,
-            output_point.y - y_offset,
-            PointType.INTERSECTION,
-            )
-        return output_point
+        for pos in xrange(output_list):
+            output_point = output_list[pos]
+            output_list[pos] = Point(
+                output_point.x + x_offset,
+                output_point.y - y_offset,
+                PointType.INTERSECTION,
+                )
+        return output_list
     return inner
 
 
 @shift_coordinates
-def breakpoint(left_point, right_point, sweep_y):
+def breakpoint(a, b, sweep_y):
     # http://www.kmschaal.de/Diplomarbeit_KevinSchaal.pdf
 
-    for point in [left_point, right_point]:
+    for point in [a, b]:
         assert point.y >= 0,\
             "Points must be at or above sweepline: " + str(point)
 
-    assert left_point.y != 0 or right_point.y != 0,\
+    assert a.y != 0 or b.y != 0,\
         "Need to handle both on sweepline I guess"
 
-    if left_point.y != right_point.y:
-        breakpoint_x = float(left_point.y * right_point.x - math.sqrt(
-            left_point.y * right_point.y * ((
-                left_point.y - right_point.y) ** 2 + right_point.x ** 2))) / (
-                    left_point.y - right_point.y)
+    if a.y != b.y:
+        numerator_beginning = float(a.y * b.x)
+        numerator_end = math.sqrt(a.y * b.y * ((a.y - b.y) ** 2 + b.x ** 2))
+        denom = a.y - b.y
+        intersections_x = [
+            (numerator_beginning - numerator_end) / denom,
+            (numerator_beginning + numerator_end) / denom,
+            ]
+
+        if intersections_x[0] != intersections_x[1]:
+            intersections_y = [
+                parabola_y(a, intersections_x[0]),
+                parabola_y(a, intersections_x[1]),
+                ]
+
+        else:
+            # vertical line to other parabola
+            pol = point_off_line(a, b)
+            intersections_y = [parabola_y(pol, intersections_x[0])] * 2
+
+        return [
+            Point(intersections_x[0], intersections_y[0]),
+            Point(intersections_x[1], intersections_y[1]),
+            ]
+
     else:
-        breakpoint_x = float(right_point.x - left_point.x) / 2
+        breakpoint_x = float(b.x - a.x) / 2
 
-    point_off_line = left_point
+        pol = point_off_line(a, b)
+
+        breakpoint_y = parabola_y(pol, breakpoint_x)
+
+        return [Point(
+            breakpoint_x,
+            breakpoint_y,
+            )]
+
+
+def point_off_line(a, b):
+    pol = a
     for position in [0, 1]:
-        if [left_point, right_point][position].y == 0:
-            other_point = [left_point, right_point][1 - position]
-            point_off_line = other_point
-
-    breakpoint_y = parabola_y(point_off_line, breakpoint_x)
-
-    return Point(
-        breakpoint_x,
-        breakpoint_y,
-        )
+        if [a, b][position].y == 0:
+            other_point = [a, b][1 - position]
+            pol = other_point
+    return pol
 
 
 def sort_points(point1, point2):
@@ -86,16 +113,22 @@ def parabola_y(point, x):
                  ) / (2 * point.y)
 
 
-def circle_center_below(point1, point2, point3):
-    assert point1.x < point2.x < point3.x, "points must have increasing x"
-    assert point1.y != point2.y or point2.y != point3.y,\
-        "can't be colinear points"
-    return point1.y <= point2.y and point3.y <= point2.y
+def collinear(a, b, c):
+    # https://math.stackexchange.com/questions/405966/if-i-have-three-points-is-there-an-easy-way-to-tell-if-they-are-collinear
+    return (b.y - a.y) * (c.x - b.x) == (c.y - b.y) * (b.x - a.x)
+
+
+def circle_center_below(a, b, c):
+    """Checks that the circle center is below the middle point, still could
+    be above the other two or the sweepline"""
+    assert a.x < b.x < c.x, "points must have increasing x"
+    signed_area = 0.5 * (a.x * b.y + c.x * a.y + b.x * c.y - c.x * b.y -
+                         a.y * b.x - a.x * c.y)
+    return signed_area < 0
 
 
 def circle_center(a, b, c):
-    assert circle_center_below(a, b, c),\
-        "doesn't have a center below"
+    assert circle_center_below(a, b, c), "doesn't have a center below"
     y_numerator = float(c.x ** 2 + c.y ** 2 - b.x ** 2 - b.y ** 2) *\
         (a.x - b.x) - (b.x ** 2 + b.y ** 2 - a.x ** 2 - a.y ** 2) *\
         (b.x - c.x)
@@ -107,13 +140,28 @@ def circle_center(a, b, c):
                         2) * (b.y - c.y))
     x_denominator = -1 * y_denominator
     x = x_numerator / x_denominator
-    return Point(x, y)
+    return Point(x, y, PointType.INTERSECTION)
+
+
+def distance(a, b):
+    return math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
+
+
+def circle_event(a, b, c):
+    center = circle_center(a, b, c)
+    event = Point(
+        center.x,
+        center.y - distance(a, center),
+        PointType.CIRCLE_EVENT,
+        )
+    return event, center
 
 
 class PointType(Enum):
     SITE = 1
     INTERSECTION = 2
-    OTHER = 3
+    CIRCLE_EVENT = 3
+    OTHER = 4
 
 
 class Point(object):
