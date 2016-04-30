@@ -43,12 +43,11 @@ class OpenList(object):
     def __init__(self):
         self.start = None
 
-    def update_moving_edges(self, new_site):
+    def update_moving_edges(self, sweep_y):
         current_node = self.start
         if current_node is None:
             pass
         else:
-            sweep_y = new_site.y
             next_node = current_node.next_node
             while next_node is not None:
                 intersections = geometry.breakpoint(
@@ -109,8 +108,14 @@ class SiteNode(object):
         self.left_edge = None
         self.right_edge = None
 
+    def left_endpoint(self):
+        return self.left_edge.start_point
+
+    def set_left_endpoint(self, new_point):
+        self.left_edge.start_point = new_point
+
     def right_endpoint(self):
-        return self.right_edge.edge.end_point
+        return self.right_edge.end_point
 
     def set_right_endpoint(self, new_point):
-        self.right_edge.edge.end_point = new_point
+        self.right_edge.end_point = new_point
