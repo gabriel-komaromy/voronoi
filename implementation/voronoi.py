@@ -25,6 +25,10 @@ def create_diagram(sites):
                 edges_list,
                 current_point,
                 )
+        elif current_point.point_type is PointType.CIRCLE_EVENT:
+            pass
+        else:
+            raise ValueError("unexpected point type")
 
     return open_list
 
@@ -42,7 +46,7 @@ def insert_site(open_list, edges_list, new_site):
     else:
         first_node = open_list.start
         if first_node.right_endpoint().x > new_site.x:
-            new_left_node, new_right_node = update_list_pointers(
+            new_left_node, new_right_node = split_node(
                 open_list,
                 edges_list,
                 first_node,
@@ -58,8 +62,14 @@ def insert_site(open_list, edges_list, new_site):
             while current_node is not None:
                 right_endpoint = current_node.right_endpoint()
                 if right_endpoint is None:
-                    # need to handle if it goes after end
-                    pass
+                    new_left_node, new_right_node = split_node(
+                        open_list,
+                        edges_list,
+                        current_node,
+                        new_site,
+                        sweep_y,
+                        )
+                    current_node.previous_node.next_node = new_left_node
 
                 elif right_endpoint.x < new_site.x:
                     current_node = current_node.next_node
@@ -71,7 +81,7 @@ def insert_site(open_list, edges_list, new_site):
                     Would have to update edges in both directions
                     in update_moving_edges"""
 
-                    new_left_node, new_right_node = update_list_pointers(
+                    new_left_node, new_right_node = split_node(
                         open_list,
                         edges_list,
                         current_node,
@@ -83,7 +93,8 @@ def insert_site(open_list, edges_list, new_site):
                     # TODO: new site directly below existing site
 
                 else:
-                    # new site lies directly beneath a current breakpoint
+                    """new site lies directly beneath a current breakpoint,
+                    can't really use the function unfortunately"""
                     new_center_node = SiteNode(new_site)
                     new_center_node.previous_node = current_node
                     right_node = current_node.next_node
@@ -98,17 +109,10 @@ def insert_site(open_list, edges_list, new_site):
                     new_center_node.right_edge = new_to_right
                     right_node.left_edge = new_to_right
 
-    """
-    if self.start.point.x > new_point.x:
-        old_start = self.start
-        new_node.next_node = old_start
-        old_start.previous_node = new_node
-        """
-
     return open_list, edges_list
 
 
-def update_list_pointers(
+def split_node(
         open_list,
         edge_list,
         current_node,
