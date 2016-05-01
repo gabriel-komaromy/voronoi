@@ -38,6 +38,9 @@ class EdgeNode(object):
         self.site = site
         self.finalized = False
 
+    def __str__(self):
+        return str(self.start_point) + " to " + str(self.end_point)
+
 
 class OpenList(object):
     """Stores the arcs on the beach line"""

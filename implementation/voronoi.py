@@ -4,6 +4,7 @@ from data_structures import OpenList
 from data_structures import EdgesList
 from data_structures import SiteNode
 from data_structures import EdgeNode
+from geometry import Point
 from geometry import PointType
 from geometry import breakpoint
 from geometry import circle_center_below
@@ -48,9 +49,13 @@ def create_diagram(sites):
             middle_node.set_left_endpoint(center_point)
             middle_node.set_right_endpoint(center_point)
             middle_node.left_edge.finalized = True
+            print middle_node.left_edge
             middle_node.right_edge.finalized = True
+            print middle_node.right_edge
             left_node.right_edge.finalized = True
+            print left_node.right_edge
             right_node.left_edge.finalized = True
+            print right_node.left_edge
 
             new_edge = EdgeNode(circle_center)
             left_node.right_edge = new_edge
@@ -69,7 +74,7 @@ def create_diagram(sites):
         else:
             raise ValueError("unexpected point type")
 
-    return open_list
+    return edges_list
 
 
 def update_circle_points(new_node, ordered_points):
@@ -119,7 +124,77 @@ def insert_site(open_list, edges_list, new_site):
 
     else:
         first_node = open_list.start
-        if first_node.right_endpoint().x > new_site.x:
+        if first_node.right_edge is not None:
+            if first_node.right_endpoint().x > new_site.x:
+                new_left_node, new_right_node = split_node(
+                    open_list,
+                    edges_list,
+                    first_node,
+                    new_site,
+                    sweep_y,
+                    )
+                open_list.start = new_left_node
+                new_node = new_left_node.next_node
+                first_node.next_node.previous_node = new_right_node
+
+            else:
+                current_node = first_node.next_node
+
+                while current_node is not None:
+                    right_endpoint = current_node.right_endpoint()
+                    if right_endpoint is None:
+                        new_left_node, new_right_node = split_node(
+                            open_list,
+                            edges_list,
+                            current_node,
+                            new_site,
+                            sweep_y,
+                            )
+                        new_node = new_left_node.next_node
+                        current_node.previous_node.next_node = new_left_node
+
+                    elif right_endpoint.x < new_site.x:
+                        current_node = current_node.next_node
+
+                    elif right_endpoint.x > new_site.x:
+                        # TODO handle the edge list crap
+                        """idea: the site that an edge holds is
+                        the edge that its PointNode points to.
+                        Would have to update edges in both directions
+                        in update_moving_edges"""
+
+                        new_left_node, new_right_node = split_node(
+                            open_list,
+                            edges_list,
+                            current_node,
+                            new_site,
+                            sweep_y,
+                            )
+                        current_node.previous_node.next_node = new_left_node
+                        new_node = new_left_node.next_node
+                        current_node.next_node.previous_node = new_right_node
+                        # TODO: new site directly below existing site
+
+                    else:
+                        """new site lies directly beneath a current breakpoint,
+                        can't really use the function unfortunately"""
+                        new_center_node = SiteNode(new_site)
+                        new_center_node.previous_node = current_node
+                        right_node = current_node.next_node
+                        new_center_node.next_node = right_node
+                        right_node.previous_node = new_center_node
+                        current_node.next_node = new_center_node
+                        current_to_new = EdgeNode(right_endpoint)
+                        new_to_right = EdgeNode(right_endpoint)
+                        current_node.right_edge.finalized = True
+                        right_node.left_edge.finalized = True
+                        current_node.right_edge = current_to_new
+                        new_center_node.left_edge = current_to_new
+                        new_center_node.right_edge = new_to_right
+                        right_node.left_edge = new_to_right
+                        new_node = new_center_node
+
+        else:
             new_left_node, new_right_node = split_node(
                 open_list,
                 edges_list,
@@ -127,66 +202,8 @@ def insert_site(open_list, edges_list, new_site):
                 new_site,
                 sweep_y,
                 )
-            open_list.start = new_left_node
             new_node = new_left_node.next_node
-            first_node.next_node.previous_node = new_right_node
-
-        else:
-            current_node = first_node.next_node
-
-            while current_node is not None:
-                right_endpoint = current_node.right_endpoint()
-                if right_endpoint is None:
-                    new_left_node, new_right_node = split_node(
-                        open_list,
-                        edges_list,
-                        current_node,
-                        new_site,
-                        sweep_y,
-                        )
-                    new_node = new_left_node.next_node
-                    current_node.previous_node.next_node = new_left_node
-
-                elif right_endpoint.x < new_site.x:
-                    current_node = current_node.next_node
-
-                elif right_endpoint.x > new_site.x:
-                    # TODO handle the edge list crap
-                    """idea: the site that an edge holds is
-                    the edge that its PointNode points to.
-                    Would have to update edges in both directions
-                    in update_moving_edges"""
-
-                    new_left_node, new_right_node = split_node(
-                        open_list,
-                        edges_list,
-                        current_node,
-                        new_site,
-                        sweep_y,
-                        )
-                    current_node.previous_node.next_node = new_left_node
-                    new_node = new_left_node.next_node
-                    current_node.next_node.previous_node = new_right_node
-                    # TODO: new site directly below existing site
-
-                else:
-                    """new site lies directly beneath a current breakpoint,
-                    can't really use the function unfortunately"""
-                    new_center_node = SiteNode(new_site)
-                    new_center_node.previous_node = current_node
-                    right_node = current_node.next_node
-                    new_center_node.next_node = right_node
-                    right_node.previous_node = new_center_node
-                    current_node.next_node = new_center_node
-                    current_to_new = EdgeNode(right_endpoint)
-                    new_to_right = EdgeNode(right_endpoint)
-                    current_node.right_edge.finalized = True
-                    right_node.left_edge.finalized = True
-                    current_node.right_edge = current_to_new
-                    new_center_node.left_edge = current_to_new
-                    new_center_node.right_edge = new_to_right
-                    right_node.left_edge = new_to_right
-                    new_node = new_center_node
+            open_list.start = new_left_node
 
     return open_list, edges_list, new_node
 
@@ -231,3 +248,15 @@ def split_node(
 def print_points(point_list):
     while len(point_list) > 0:
         print heapq.heappop(point_list)
+
+
+if __name__ == '__main__':
+    points = [(3, 3), (0, 10), (9, 0), (4, 7), (4, 5)]
+
+    def make_point(entry):
+        return Point(
+            entry[0],
+            entry[1],
+            PointType.SITE,
+            )
+    create_diagram(map(make_point, points))

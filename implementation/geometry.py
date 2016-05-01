@@ -24,7 +24,7 @@ def shift_coordinates(func):
         output_list = func(left_point, right_point, sweep_y)
 
         """Apply inverse transformation to breakpoint"""
-        for pos in xrange(output_list):
+        for pos in xrange(len(output_list)):
             output_point = output_list[pos]
             output_list[pos] = Point(
                 output_point.x + x_offset,
