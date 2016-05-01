@@ -109,7 +109,14 @@ def sort_points(point1, point2):
         right_point = point1
         left_point = point2
     else:
-        raise ValueError("shouldn't be finding breakpoint for lines at same x")
+        if point1.y > point2.y:
+            left_point = point1
+            right_point = point2
+        elif point2.y > point1.y:
+            left_point = point2
+            right_point = point1
+        else:
+            raise ValueError("points are the same")
 
     return left_point, right_point
 
@@ -129,6 +136,13 @@ def collinear(a, b, c):
 def circle_center_below(a, b, c):
     """Checks that the circle center is below the middle point, still could
     be above the other two or the sweepline"""
+    """
+    print 'a: ' + str(a)
+    print 'b: ' + str(b)
+    print 'c: ' + str(c)
+    """
+    if a == c:
+        return False
     assert a.x < b.x < c.x, "points must have increasing x"
     signed_area = 0.5 * (a.x * b.y + c.x * a.y + b.x * c.y - c.x * b.y -
                          a.y * b.x - a.x * c.y)
@@ -194,6 +208,9 @@ class Point(object):
     def __str__(self):
         return "(" + str(self.x) + ", " + str(self.y) + "), type: " +\
             str(self.point_type)
+
+    def __hash__(self):
+        return hash(str(self))
 
 
 class LineSegment(object):

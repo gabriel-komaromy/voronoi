@@ -22,11 +22,20 @@ class EdgesList(object):
             return new_node
 
 
-class EdgeNode(object):
-    def __init__(self, start_point, previous_edge, site):
+class Edge(object):
+    def __init__(self, start_point):
         self.start_point = start_point
         self.end_point = None
-        self.previous_edge = previous_edge
+        self.finalized = False
+
+    def __str__(self):
+        return str(self.start_point) + " to " + str(self.end_point)
+
+
+class EdgeNode(object):
+    def __init__(self, edge):
+        self.edge = edge
+        self.previous_edge = None
         self.next_edge = None
         if self.previous_edge is not None:
             self.previous_edge.next_edge = self
@@ -35,7 +44,7 @@ class EdgeNode(object):
         if self.twin is not None:
             self.twin.twin = self
             """
-        self.site = site
+        self.site = None
         self.finalized = False
 
     def __str__(self):
