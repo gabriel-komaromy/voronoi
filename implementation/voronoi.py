@@ -23,6 +23,7 @@ def create_diagram(sites):
     edges_list = []
 
     while ordered_points:
+        heapq.heapify(ordered_points)
         for edge in edges_list:
             print edge
         # print 'looping'
@@ -30,26 +31,24 @@ def create_diagram(sites):
 
         open_list.update_moving_edges(current_point.y)
         print '\nEXPANDING: ' + str(current_point) + "\n"
+
+        sweep_y = current_point.y
         if current_point.point_type is PointType.SITE:
             open_list, edges_list, new_node = insert_site(
                 open_list,
                 edges_list,
                 current_point,
                 )
-            """
-            beach_start = open_list.start
-            while beach_start is not None:
-                print 'beach: ' + str(beach_start.site)
-                beach_start = beach_start.next_node
-                """
 
             ordered_points = update_circle_points(
                 new_node,
                 ordered_points,
+                sweep_y
                 )
-            heapq.heapify(ordered_points)
+
         elif current_point.point_type is PointType.CIRCLE_EVENT:
             middle_node = current_point.event_node
+            print 'deleting because of circle: ' + str(middle_node.site)
             middle_site = middle_node.site
             left_node = middle_node.previous_node
             left_site = left_node.site
@@ -71,21 +70,27 @@ def create_diagram(sites):
             ordered_points = update_circle_points(
                 left_node,
                 ordered_points,
+                sweep_y
                 )
             ordered_points = update_circle_points(
                 right_node,
                 ordered_points,
+                sweep_y
                 )
-
-            heapq.heapify(ordered_points)
 
         else:
             raise ValueError("unexpected point type")
 
+        beach_start = open_list.start
+        while beach_start is not None:
+            print 'beach: ' + str(beach_start.site)
+            beach_start = beach_start.next_node
+
+        heapq.heapify(ordered_points)
     return edges_list
 
 
-def update_circle_points(new_node, ordered_points):
+def update_circle_points(new_node, ordered_points, sweep_y):
     relevant_nodes = [None] * 5
     relevant_nodes[2] = new_node
     relevant_nodes[1] = new_node.previous_node
@@ -128,27 +133,35 @@ def update_circle_points(new_node, ordered_points):
 
             if circle_center_below(a.site, b.site, c.site):
                 event, center = circle_event(a.site, b.site, c.site)
-                """
-                print 'event: ' + str(event)
-                print 'center: ' + str(center)
-                """
-                # print 'Event: ' + str(event)
-                event.event_node = b
-                if previous_event is None:
-                    b.circle_minimum = event
-                    # print 'adding circle point'
-                    ordered_points.append(event)
+                print 'event y: ' + str(event.y)
+                print 'min y: ' + str(sweep_y)
+                if event.y > sweep_y:
+                    pass
                 else:
-                    if event != previous_event:
-                        ordered_points.remove(previous_event)
+                    """
+                    print 'event: ' + str(event)
+                    print 'center: ' + str(center)
+                    """
+                    # print 'Event: ' + str(event)
+                    event.event_node = b
+                    if previous_event is None:
                         b.circle_minimum = event
+                        # print 'adding circle point'
                         ordered_points.append(event)
+                    else:
+                        if event != previous_event:
+                            ordered_points.remove(previous_event)
+                            b.circle_minimum = event
+                            ordered_points.append(event)
             else:
                 if b.circle_minimum is not None:
-                    # print 'removing circle point'
+                    print 'removing circle point' + str(b.circle_minimum)
                     ordered_points.remove(b.circle_minimum)
                     b.circle_minimum = None
 
+    heapq.heapify(ordered_points)
+    print 'ordered points after circle update:'
+    print_points(ordered_points)
     return ordered_points
 
 
@@ -306,15 +319,16 @@ def split_node(
 
 
 def print_points(point_list):
-    while len(point_list) > 0:
-        print heapq.heappop(point_list)
+    new_list = list(point_list)
+    while len(new_list) > 0:
+        print heapq.heappop(new_list)
 
 
 if __name__ == '__main__':
     points = [
         (0, 10),
         (4, 7),
-        (5, 7),
+        (4, 5),
         (3, 3),
         (9, 0),
         ]
