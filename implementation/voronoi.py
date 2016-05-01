@@ -22,7 +22,9 @@ def create_diagram(sites):
     edges_list = []
 
     while ordered_points:
+        # print 'looping'
         current_point = next_point(ordered_points)
+        # print current_point
         if current_point.point_type is PointType.SITE:
             open_list.update_moving_edges(current_point.y)
             open_list, edges_list, new_node = insert_site(
@@ -118,6 +120,7 @@ def next_point(ordered_points):
 
 
 def insert_site(open_list, edges_list, new_site):
+    print new_site
     new_node = SiteNode(new_site)
     sweep_y = new_site.y
     if open_list.start is None:
@@ -141,10 +144,9 @@ def insert_site(open_list, edges_list, new_site):
             else:
                 current_node = first_node.next_node
 
-                while current_node is not None:
-                    right_endpoint = current_node.right_endpoint()
-                    if right_endpoint is None:
-                        new_left_node, new_right_node = split_node(
+                while True:
+                    if current_node.next_node is None:
+                        new_left_node, new_right_node, edges_list = split_node(
                             open_list,
                             edges_list,
                             current_node,
@@ -153,9 +155,14 @@ def insert_site(open_list, edges_list, new_site):
                             )
                         new_node = new_left_node.next_node
                         current_node.previous_node.next_node = new_left_node
+                        break
 
-                    elif right_endpoint.x < new_site.x:
+                    right_endpoint = current_node.right_endpoint()
+
+                    if right_endpoint.x < new_site.x:
                         current_node = current_node.next_node
+                        print 'continuing'
+                        continue
 
                     elif right_endpoint.x > new_site.x:
                         new_left_node, new_right_node, edges_list = split_node(
@@ -168,6 +175,7 @@ def insert_site(open_list, edges_list, new_site):
                         current_node.previous_node.next_node = new_left_node
                         new_node = new_left_node.next_node
                         current_node.next_node.previous_node = new_right_node
+                        break
 
                     else:
                         """new site lies directly beneath a current breakpoint,
@@ -189,6 +197,7 @@ def insert_site(open_list, edges_list, new_site):
                         new_center_node.right_edge = new_to_right
                         right_node.left_edge = new_to_right
                         new_node = new_center_node
+                        break
 
         else:
             new_left_node, new_right_node, edges_list = split_node(

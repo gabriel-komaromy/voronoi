@@ -37,6 +37,7 @@ def shift_coordinates(func):
 
 @shift_coordinates
 def breakpoint(a, b, sweep_y):
+    # print 'finding breakpoint: ' + str(a) + ', ' + str(b)
     # http://www.kmschaal.de/Diplomarbeit_KevinSchaal.pdf
 
     for point in [a, b]:
@@ -59,6 +60,11 @@ def breakpoint(a, b, sweep_y):
             (numerator_beginning - numerator_end) / denom,
             (numerator_beginning + numerator_end) / denom,
             ]
+        """
+        print 'a: ' + str(a)
+        print 'b: ' + str(b)
+        print 'sweep: ' + str(sweep_y)
+        """
 
         if intersections_x[0] != intersections_x[1]:
             intersections_y = [
@@ -71,11 +77,13 @@ def breakpoint(a, b, sweep_y):
             pol = point_off_line(a, b)
             intersections_y = [parabola_y(pol, intersections_x[0])] * 2
 
-        output_list = [
+        output_list = list(sort_points(
             Point(intersections_x[0], intersections_y[0]),
             Point(intersections_x[1], intersections_y[1]),
-            ]
-        assert output_list[0].x <= output_list[1].x, "break points not sorted"
+            ))
+        assert output_list[0].x <= output_list[1].x,\
+                "break points not sorted: " + str(output_list[0]) + ', ' +\
+                str(output_list[1])
 
     else:
         breakpoint_x = float(b.x - a.x) / 2
@@ -116,7 +124,8 @@ def sort_points(point1, point2):
             left_point = point2
             right_point = point1
         else:
-            raise ValueError("points are the same")
+            left_point = point1
+            right_point = point2
 
     return left_point, right_point
 

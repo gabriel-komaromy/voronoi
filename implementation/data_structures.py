@@ -63,6 +63,7 @@ class OpenList(object):
         else:
             next_node = current_node.next_node
             while next_node is not None:
+                # print 'while iterating'
                 intersections = geometry.breakpoint(
                     current_node.site,
                     next_node.site,
@@ -133,3 +134,6 @@ class SiteNode(object):
 
     def set_right_endpoint(self, new_point):
         self.right_edge.end_point = new_point
+
+    def has_right_endpoint(self):
+        return self.right_edge is not None
