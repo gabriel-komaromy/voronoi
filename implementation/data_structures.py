@@ -107,6 +107,7 @@ class SiteNode(object):
         self.next_node = None
         self.left_edge = None
         self.right_edge = None
+        self.circle_event = None
 
     def left_endpoint(self):
         return self.left_edge.start_point

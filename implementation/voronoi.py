@@ -6,6 +6,8 @@ from data_structures import SiteNode
 from data_structures import EdgeNode
 from geometry import PointType
 from geometry import breakpoint
+from geometry import circle_center_below
+from geometry import circle_event
 
 
 def create_diagram(sites):
@@ -15,22 +17,63 @@ def create_diagram(sites):
 
     open_list = OpenList()
     edges_list = EdgesList()
+    # TODO: handle cell table
 
     while ordered_points:
         current_point = next_point(ordered_points)
         if current_point.point_type is PointType.SITE:
             open_list.update_moving_edges(current_point.y)
-            open_list, edges_list = insert_site(
+            open_list, edges_list, new_node = insert_site(
                 open_list,
                 edges_list,
                 current_point,
                 )
+            ordered_points = update_circle_events(
+                new_node,
+                ordered_points,
+                )
+            heapq.heapify(ordered_points)
         elif current_point.point_type is PointType.CIRCLE_EVENT:
             pass
         else:
             raise ValueError("unexpected point type")
 
     return open_list
+
+
+def update_circle_events(new_node, ordered_points):
+    relevant_nodes = [None] * 5
+    relevant_nodes[2] = new_node
+    relevant_nodes[1] = new_node.previous_node
+    relevant_nodes[3] = new_node.next_node
+    if relevant_nodes[1] is not None:
+        relevant_nodes[0] = relevant_nodes[1].previous_node
+    if relevant_nodes[3] is not None:
+        relevant_nodes[4] = relevant_nodes[3].next_node
+
+    for middle_node in xrange(1, 4):
+        if relevant_nodes[middle_node - 1] is not None and\
+                relevant_nodes[middle_node + 1] is not None:
+
+            a = relevant_nodes[middle_node - 1]
+            b = relevant_nodes[middle_node]
+            c = relevant_nodes[middle_node + 1]
+            previous_event = b.circle_event
+
+            if circle_center_below(a, b, c):
+                event, center = circle_event(a, b, c)
+                previous_event = b.circle_event
+                if event != previous_event:
+                    if previous_event is not None:
+                        ordered_points.remove(previous_event)
+                    b.circle_event = event
+                    ordered_points.append(event)
+            else:
+                if b.circle_event is not None:
+                    ordered_points.remove(b.circle_event)
+                    b.circle_event = None
+
+    return ordered_points
 
 
 def next_point(ordered_points):
@@ -54,6 +97,7 @@ def insert_site(open_list, edges_list, new_site):
                 sweep_y,
                 )
             open_list.start = new_left_node
+            new_node = new_left_node.next_node
             first_node.next_node.previous_node = new_right_node
 
         else:
@@ -69,6 +113,7 @@ def insert_site(open_list, edges_list, new_site):
                         new_site,
                         sweep_y,
                         )
+                    new_node = new_left_node.next_node
                     current_node.previous_node.next_node = new_left_node
 
                 elif right_endpoint.x < new_site.x:
@@ -89,6 +134,7 @@ def insert_site(open_list, edges_list, new_site):
                         sweep_y,
                         )
                     current_node.previous_node.next_node = new_left_node
+                    new_node = new_left_node.next_node
                     current_node.next_node.previous_node = new_right_node
                     # TODO: new site directly below existing site
 
@@ -108,13 +154,14 @@ def insert_site(open_list, edges_list, new_site):
                     new_center_node.left_edge = current_to_new
                     new_center_node.right_edge = new_to_right
                     right_node.left_edge = new_to_right
+                    new_node = new_center_node
 
-    return open_list, edges_list
+    return open_list, edges_list, new_node
 
 
 def split_node(
         open_list,
-        edge_list,
+        edges_list,
         current_node,
         new_site,
         sweep_y,
@@ -146,7 +193,7 @@ def split_node(
         new_right_node.previous_node = new_center_node
         new_right_node.left_edge = new_to_right
         new_right_node.right_edge = current_node.right_edge
-        return new_left_node, new_right_node
+        return new_left_node, new_right_node, edges_list
 
 
 def print_points(point_list):
