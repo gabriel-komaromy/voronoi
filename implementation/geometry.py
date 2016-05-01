@@ -215,8 +215,10 @@ class Point(object):
             return self.x < other.x
 
     def __eq__(self, other):
-        return self.y == other.y and self.x == other.x and\
-            self.point_type == other.point_type
+        tolerance = 0.000001
+        y_equal = self.y - tolerance < other.y < self.y + tolerance
+        x_equal = self.x - tolerance < other.x < self.x + tolerance
+        return y_equal and x_equal and self.point_type == other.point_type
 
     def __str__(self):
         return "(" + str(self.x) + ", " + str(self.y) + "), type: " +\
@@ -226,10 +228,38 @@ class Point(object):
         return hash(str(self))
 
 
-class LineSegment(object):
-    def __init__(self, endpoints):
-        assert len(endpoints) == 2
-        self.endpoints = endpoints
+def intersects(edge1, edge2):
+    A = edge1.start_point
+    B = edge1.end_point
+    C = edge2.start_point
+    D = edge2.end_point
+    for point in [A, B, C, D]:
+        if point is None:
+            return False
 
-    def __str__(self):
-        return str(self.endpoints[0]) + " to " + str(self.endpoints[1])
+    def ccw(A, B, C):
+        return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x)
+
+    return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
+
+
+def passes_through(edge1, edge2):
+    if intersects(edge1, edge2):
+        print 'edge 1 start: ' + str(edge1.start_point)
+        print 'edge 1 end: ' + str(edge1.end_point)
+        print 'edge 2 start: ' + str(edge2.start_point)
+        print 'edge 2 end: ' + str(edge2.end_point)
+        start_start = edge1.start_point == edge2.start_point
+        print 'start_start: ' + str(start_start)
+        start_end = edge1.start_point == edge2.end_point
+        print 'start_end: ' + str(start_end)
+        end_start = edge1.end_point == edge2.start_point
+        print 'end_start: ' + str(end_start)
+        end_end = edge1.end_point == edge2.end_point
+        print 'end_end: ' + str(end_end)
+        has_equal_points = start_start or start_end or\
+            end_start or end_end
+        print 'returning: ' + str(not has_equal_points)
+        return not has_equal_points
+    else:
+        return False
