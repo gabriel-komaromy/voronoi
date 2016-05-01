@@ -36,6 +36,7 @@ class EdgeNode(object):
             self.twin.twin = self
             """
         self.site = site
+        self.finalized = False
 
 
 class OpenList(object):
@@ -107,7 +108,7 @@ class SiteNode(object):
         self.next_node = None
         self.left_edge = None
         self.right_edge = None
-        self.circle_event = None
+        self.circle_minimum = None
 
     def left_endpoint(self):
         return self.left_edge.start_point

@@ -177,6 +177,7 @@ class Point(object):
         self.x = x
         self.y = y
         self.point_type = point_type
+        self.event_node = None
 
     def __cmp__(self, other):
         """The sweepline moves up the plane, so we consider points

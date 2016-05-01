@@ -8,6 +8,7 @@ from geometry import PointType
 from geometry import breakpoint
 from geometry import circle_center_below
 from geometry import circle_event
+from geometry import circle_center
 
 
 def create_diagram(sites):
@@ -28,20 +29,50 @@ def create_diagram(sites):
                 edges_list,
                 current_point,
                 )
-            ordered_points = update_circle_events(
+            ordered_points = update_circle_points(
                 new_node,
                 ordered_points,
                 )
             heapq.heapify(ordered_points)
         elif current_point.point_type is PointType.CIRCLE_EVENT:
-            pass
+            open_list.update_moving_edges(current_point.y)
+            middle_node = current_point.event_node
+            middle_site = middle_node.site
+            left_node = middle_node.previous_site
+            left_site = left_node.site
+            right_node = middle_node.next_site
+            right_site = right_node.site
+            center_point = circle_center(left_site, middle_site, right_site)
+
+            """Next two lines maybe unnecessary"""
+            middle_node.set_left_endpoint(center_point)
+            middle_node.set_right_endpoint(center_point)
+            middle_node.left_edge.finalized = True
+            middle_node.right_edge.finalized = True
+            left_node.right_edge.finalized = True
+            right_node.left_edge.finalized = True
+
+            new_edge = EdgeNode(circle_center)
+            left_node.right_edge = new_edge
+            right_node.left_edge = new_edge
+            left_node.next_node = right_node
+            right_node.previous_node = left_node
+            ordered_points = update_circle_points(
+                left_node,
+                ordered_points,
+                )
+            ordered_points = update_circle_points(
+                right_node,
+                ordered_points,
+                )
+
         else:
             raise ValueError("unexpected point type")
 
     return open_list
 
 
-def update_circle_events(new_node, ordered_points):
+def update_circle_points(new_node, ordered_points):
     relevant_nodes = [None] * 5
     relevant_nodes[2] = new_node
     relevant_nodes[1] = new_node.previous_node
@@ -58,20 +89,20 @@ def update_circle_events(new_node, ordered_points):
             a = relevant_nodes[middle_node - 1]
             b = relevant_nodes[middle_node]
             c = relevant_nodes[middle_node + 1]
-            previous_event = b.circle_event
+            previous_event = b.circle_minimum
 
-            if circle_center_below(a, b, c):
-                event, center = circle_event(a, b, c)
-                previous_event = b.circle_event
+            if circle_center_below(a.site, b.site, c.site):
+                event, center = circle_event(a.site, b.site, c.site)
+                event.event_node = b
                 if event != previous_event:
                     if previous_event is not None:
                         ordered_points.remove(previous_event)
-                    b.circle_event = event
+                    b.circle_minimum = event
                     ordered_points.append(event)
             else:
-                if b.circle_event is not None:
-                    ordered_points.remove(b.circle_event)
-                    b.circle_event = None
+                if b.circle_minimum is not None:
+                    ordered_points.remove(b.circle_minimum)
+                    b.circle_minimum = None
 
     return ordered_points
 
@@ -149,7 +180,8 @@ def insert_site(open_list, edges_list, new_site):
                     current_node.next_node = new_center_node
                     current_to_new = EdgeNode(right_endpoint)
                     new_to_right = EdgeNode(right_endpoint)
-                    # TODO finalize the old edge between current and right
+                    current_node.right_edge.finalized = True
+                    right_node.left_edge.finalized = True
                     current_node.right_edge = current_to_new
                     new_center_node.left_edge = current_to_new
                     new_center_node.right_edge = new_to_right
