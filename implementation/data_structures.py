@@ -63,7 +63,11 @@ class OpenList(object):
         else:
             next_node = current_node.next_node
             while next_node is not None:
-                # print 'while iterating'
+                """
+                print 'sweep y: ' + str(sweep_y)
+                print 'current: ' + str(current_node.site)
+                print 'next: ' + str(next_node.site)
+                """
                 intersections = geometry.breakpoint(
                     current_node.site,
                     next_node.site,

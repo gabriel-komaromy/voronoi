@@ -28,7 +28,7 @@ def shift_coordinates(func):
             output_point = output_list[pos]
             output_list[pos] = Point(
                 output_point.x + x_offset,
-                output_point.y - y_offset,
+                output_point.y + y_offset,
                 PointType.INTERSECTION,
                 )
         return output_list
@@ -76,14 +76,20 @@ def breakpoint(a, b, sweep_y):
             # vertical line to other parabola
             pol = point_off_line(a, b)
             intersections_y = [parabola_y(pol, intersections_x[0])] * 2
+            """
+            print intersections_x[0]
+            print parabola_y(pol, intersections_x[0])
+            """
 
         output_list = list(sort_points(
             Point(intersections_x[0], intersections_y[0]),
             Point(intersections_x[1], intersections_y[1]),
             ))
+        """
         assert output_list[0].x <= output_list[1].x,\
-                "break points not sorted: " + str(output_list[0]) + ', ' +\
-                str(output_list[1])
+            "break points not sorted: " + str(output_list[0]) + ', ' +\
+            str(output_list[1])
+            """
 
     else:
         breakpoint_x = float(b.x - a.x) / 2
@@ -152,7 +158,7 @@ def circle_center_below(a, b, c):
     """
     if a == c:
         return False
-    assert a.x < b.x < c.x, "points must have increasing x"
+    # assert a.x < b.x < c.x, "points must have increasing x"
     signed_area = 0.5 * (a.x * b.y + c.x * a.y + b.x * c.y - c.x * b.y -
                          a.y * b.x - a.x * c.y)
     return signed_area < 0
