@@ -57,9 +57,6 @@ def create_diagram(sites):
             right_site = right_node.site
             center_point = circle_center(left_site, middle_site, right_site)
 
-            """Next two lines maybe unnecessary"""
-            middle_node.set_left_endpoint(center_point)
-            middle_node.set_right_endpoint(center_point)
             middle_node.left_edge.finalized = True
             middle_node.right_edge.finalized = True
             left_node.right_edge.finalized = True
@@ -317,7 +314,7 @@ if __name__ == '__main__':
     points = [
         (0, 10),
         (4, 7),
-        (5, 5),
+        (5, 7),
         (3, 3),
         (9, 0),
         ]
