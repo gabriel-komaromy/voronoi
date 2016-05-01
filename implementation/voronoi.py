@@ -28,10 +28,13 @@ def create_diagram(sites):
             print edge
         # print 'looping'
         current_point = next_point(ordered_points)
+        heapq.heapify(ordered_points)
 
         open_list.update_moving_edges(current_point.y)
+        heapq.heapify(ordered_points)
         print '\nEXPANDING: ' + str(current_point) + "\n"
 
+        sweep_x = current_point.x
         sweep_y = current_point.y
         if current_point.point_type is PointType.SITE:
             open_list, edges_list, new_node = insert_site(
@@ -43,8 +46,14 @@ def create_diagram(sites):
             ordered_points = update_circle_points(
                 new_node,
                 ordered_points,
-                sweep_y
+                sweep_x,
+                sweep_y,
                 )
+            print 'ORDERED POINTS BEFORE HEAPIFY:'
+            print_points(ordered_points)
+            heapq.heapify(ordered_points)
+            print 'ORDERED POINTS AFTER HEAPIFY:'
+            print_points(ordered_points)
 
         elif current_point.point_type is PointType.CIRCLE_EVENT:
             middle_node = current_point.event_node
@@ -67,15 +76,18 @@ def create_diagram(sites):
             left_node.next_node = right_node
             right_node.previous_node = left_node
             edges_list.append(new_edge)
+            heapq.heapify(ordered_points)
             ordered_points = update_circle_points(
                 left_node,
                 ordered_points,
-                sweep_y
+                sweep_x,
+                sweep_y,
                 )
             ordered_points = update_circle_points(
                 right_node,
                 ordered_points,
-                sweep_y
+                sweep_x,
+                sweep_y,
                 )
 
         else:
@@ -90,7 +102,7 @@ def create_diagram(sites):
     return edges_list
 
 
-def update_circle_points(new_node, ordered_points, sweep_y):
+def update_circle_points(new_node, ordered_points, sweep_x, sweep_y):
     relevant_nodes = [None] * 5
     relevant_nodes[2] = new_node
     relevant_nodes[1] = new_node.previous_node
@@ -133,9 +145,13 @@ def update_circle_points(new_node, ordered_points, sweep_y):
 
             if circle_center_below(a.site, b.site, c.site):
                 event, center = circle_event(a.site, b.site, c.site)
+                """
                 print 'event y: ' + str(event.y)
                 print 'min y: ' + str(sweep_y)
+                """
                 if event.y > sweep_y:
+                    pass
+                elif event.y == sweep_y and event.x <= sweep_x:
                     pass
                 else:
                     """
@@ -328,7 +344,7 @@ if __name__ == '__main__':
     points = [
         (0, 10),
         (4, 7),
-        (4, 5),
+        (5, 5),
         (3, 3),
         (9, 0),
         ]

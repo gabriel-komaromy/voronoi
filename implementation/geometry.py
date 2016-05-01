@@ -208,13 +208,11 @@ class Point(object):
         self.point_type = point_type
         self.event_node = None
 
-    def __cmp__(self, other):
-        """The sweepline moves up the plane, so we consider points
-        with lower y first, and break ties in y by lower x first"""
+    def __lt__(self, other):
         if self.y != other.y:
-            return other.y - self.y
+            return self.y > other.y
         else:
-            return self.x - other.x
+            return self.x < other.x
 
     def __eq__(self, other):
         return self.y == other.y and self.x == other.x and\
