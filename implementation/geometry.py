@@ -218,7 +218,10 @@ class Point(object):
         tolerance = 0.000001
         y_equal = self.y - tolerance < other.y < self.y + tolerance
         x_equal = self.x - tolerance < other.x < self.x + tolerance
-        return y_equal and x_equal and self.point_type == other.point_type
+        return y_equal and x_equal
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __str__(self):
         return "(" + str(self.x) + ", " + str(self.y) + "), type: " +\

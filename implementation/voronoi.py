@@ -30,13 +30,12 @@ def create_diagram(sites):
         for edge in edges_list:
             print edge
             """
-        # print 'looping'
         current_point = next_point(ordered_points)
         heapq.heapify(ordered_points)
 
         open_list.update_moving_edges(current_point.y)
         heapq.heapify(ordered_points)
-        # print '\nEXPANDING: ' + str(current_point) + "\n"
+        print '\nEXPANDING: ' + str(current_point) + "\n"
 
         sweep_x = current_point.x
         sweep_y = current_point.y
@@ -64,6 +63,15 @@ def create_diagram(sites):
             """
 
         elif current_point.point_type is PointType.CIRCLE_EVENT:
+            """
+            print 'BEFORE STUFF:'
+            current_node = open_list.start
+            while current_node is not None:
+                print 'current node\'s minimum: ' + str(current_node.circle_minimum)
+                print 'current node\'s site: ' + str(current_node.site)
+                current_node = current_node.next_node
+                """
+
             middle_node = current_point.event_node
             # print 'deleting because of circle: ' + str(middle_node.site)
             middle_site = middle_node.site
@@ -91,12 +99,36 @@ def create_diagram(sites):
                 sweep_x,
                 sweep_y,
                 )
+            """
+            print 'AFTER FIRST UPDATE:'
+            current_node = open_list.start
+            while current_node is not None:
+                print 'current node\'s minimum: ' + str(current_node.circle_minimum)
+                print 'current node\'s site: ' + str(current_node.site)
+                current_node = current_node.next_node
+                """
+
             ordered_points = update_circle_points(
                 right_node,
                 ordered_points,
                 sweep_x,
                 sweep_y,
                 )
+
+            current_node = open_list.start
+            """
+            print 'AFTER STUFF: '
+            while current_node is not None:
+                print 'current node\'s minimum: ' + str(current_node.circle_minimum)
+                print 'current node\'s site: ' + str(current_node.site)
+                if current_node.circle_minimum is not None:
+                    print 'current point: ' + str(current_point)
+                    print 'circle minimum: ' + str(current_node.circle_minimum)
+                    if current_point == current_node.circle_minimum:
+                        print 'erasing'
+                        current_node.circle_minimum = None
+                current_node = current_node.next_node
+                """
 
         else:
             raise ValueError("unexpected point type")
@@ -214,7 +246,9 @@ def update_circle_points(new_node, ordered_points, sweep_x, sweep_y):
                 event, center = circle_event(a.site, b.site, c.site)
                 """
                 print 'event y: ' + str(event.y)
+                print 'center: ' + str(center)
                 print 'min y: ' + str(sweep_y)
+                print 'previous event: ' + str(previous_event)
                 """
                 if event.y > sweep_y:
                     pass
@@ -224,23 +258,38 @@ def update_circle_points(new_node, ordered_points, sweep_x, sweep_y):
                     """
                     print 'event: ' + str(event)
                     print 'center: ' + str(center)
+                    print 'Event: ' + str(event)
                     """
-                    # print 'Event: ' + str(event)
                     event.event_node = b
                     if previous_event is None:
                         b.circle_minimum = event
-                        # print 'adding circle point'
+                        # print 'adding circle point' + str(event)
                         ordered_points.append(event)
                     else:
                         if event != previous_event:
-                            ordered_points.remove(previous_event)
+                            if previous_event in ordered_points:
+                                """
+                                print 'removing circle point' + str(previous_event) + 'new event is ' + str(event)
+                                print_points(ordered_points)
+                                """
+                                ordered_points.remove(previous_event)
                             b.circle_minimum = event
                             ordered_points.append(event)
             else:
                 if b.circle_minimum is not None:
-                    # print 'removing circle point' + str(b.circle_minimum)
-                    ordered_points.remove(b.circle_minimum)
+                    if b.circle_minimum in ordered_points:
+                        """
+                        print 'removing circle point' + str(b.circle_minimum)
+                        print_points(ordered_points)
+                        """
+                        ordered_points.remove(b.circle_minimum)
                     b.circle_minimum = None
+        elif relevant_nodes[middle_node] is not None:
+            """
+            print 'making minimum node'
+            print 'old minimum: ' + str(relevant_nodes[middle_node].circle_minimum)
+            """
+            relevant_nodes[middle_node].circle_minimum = None
 
     heapq.heapify(ordered_points)
     """
@@ -266,7 +315,7 @@ def insert_site(open_list, edges_list, new_site):
         if first_node.right_edge is not None:
             if first_node.right_endpoint().x > new_site.x:
                 # print 'inserting before first node right endpoint'
-                new_left_node, new_right_node = split_node(
+                new_left_node, new_right_node, edges_list = split_node(
                     open_list,
                     edges_list,
                     first_node,
@@ -410,14 +459,13 @@ def print_points(point_list):
 
 
 if __name__ == '__main__':
-    """
     num_points = 10
     points = []
     for _ in xrange(num_points):
         point = (random.uniform(0, 10), random.uniform(0, 10))
         print point
         points.append(point)
-        """
+    """
     points = [
         (0, 10),
         (4, 7),
@@ -428,6 +476,7 @@ if __name__ == '__main__':
         (2, 1),
         (7, 9),
         ]
+        """
 
     def make_point(entry):
         return Point(
