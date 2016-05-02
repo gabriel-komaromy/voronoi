@@ -320,28 +320,18 @@
 % not capitalized unless they are the first or last word of the title.
 % Linebreaks \\ can be used within to get better formatting as desired.
 % Do not put math or special symbols in the title.
-\title{Bare Demo of IEEEtran.cls\\ for IEEE Conferences}
+\title{Voronoi Diagrams\\and Nearest-Neighbor Search}
 
 
 % author names and affiliations
 % use a multiple column layout for up to three different
 % affiliations
-\author{\IEEEauthorblockN{Michael Shell}
-\IEEEauthorblockA{School of Electrical and\\Computer Engineering\\
-Georgia Institute of Technology\\
-Atlanta, Georgia 30332--0250\\
-Email: http://www.michaelshell.org/contact.html}
-\and
-\IEEEauthorblockN{Homer Simpson}
-\IEEEauthorblockA{Twentieth Century Fox\\
-Springfield, USA\\
-Email: homer@thesimpsons.com}
-\and
-\IEEEauthorblockN{James Kirk\\ and Montgomery Scott}
-\IEEEauthorblockA{Starfleet Academy\\
-San Francisco, California 96678--2391\\
-Telephone: (800) 555--1212\\
-Fax: (888) 555--1212}}
+\author{\IEEEauthorblockN{Gabriel Ewing}
+\IEEEauthorblockA{Department of Electrical Engineering\\and Computer Science\\
+Case Western Reserve University\\
+Cleveland, OH\\
+gre5@case.edu}
+}
 
 % conference papers do not typically use \thanks and this command
 % is locked out in conference mode. If really needed, such as for
@@ -401,27 +391,60 @@ The abstract goes here.
 
 
 \section{Introduction}
-% no \IEEEPARstart
-This demo file is intended to serve as a ``starter file''
-for IEEE conference papers produced under \LaTeX\ using
-IEEEtran.cls version 1.8b and later~\cite{fortune1987sweepline}.
-% You must have at least 2 lines in the paragraph with the drop letter
-% (should never be an issue)
-I wish you the best of success.
+Robotic motion planning is the problem of finding a path from the starting
+configuration of a robot to some goal configuration that does not collide
+with any obstacles. In the case where the positions of the obstacles are
+known \emph{a priori} but the start and goal configurations are not, it
+can be useful to create a \emph{roadmap} of the configuration space.
+Roadmaps demonstrate connected edges through the free space such that a
+robot can easily move to some edge from a starting configuration, and
+easily move to the goal configuration from some edge. If there is a path
+between the two edges in free space, the roadmap should have a path between
+them.
+
+\subsection{Voronoi Diagrams}
+\emph{Voronoi diagrams} are a class of roadmap. The basic definition
+of a Voronoi diagram is that its edges represent the points that are
+equidistant from the closest obstacles to that point. This means that each
+edge represents the path that maintains the maximal separation from two
+obstacles while traveling between them. Following the Voronoi edge between two
+obstacles minimizes the chance of a collision with an obstacle, which is
+a desirable property when the transition dynamics for the environment are
+non-deterministic and the cost of a collision is high. Visually, a Voronoi diagram divides
+the free space into \emph{Voronoi regions} of points that share a common closest obstacle.\\
+\indent Voronoi diagrams are theoretically defined in spaces of arbitrary dimension
+and for obstacles of any shape. However, the complexity of creating the
+diagram grows quickly with the dimensionality of the configuration space.
+Additionally, more complex obstacle shapes bring more complex edges on the diagram.
+In this paper, we focus on two-dimensional environments with obstacles that
+are points.
+
+\subsection{Nearest-Neighbors Classification}
+Voronoi diagrams have other uses beyond robot motion planning.
+One application, which we explore in this paper, is to use a Voronoi diagram
+to build a \emph{k-Nearest-Neighbors (KNN) classifier}. KNN classifiers come from
+the field of machine learning. The classification problem is as follows:
+given a \emph{training set} of feature vectors with labels of either 0 or 1,
+produce a machine that, given a new feature vector \emph{T}, will identify the \emph{k}
+members of the training set with the closest feature vectors to \emph{T}. The
+output label for \emph{T} will be the class that the majority of the \emph{k} nearest
+neighbors belong to. The metric used to define the ``closest'' feature
+vectors can vary based on the characterization of the available features,
+but the simplest way to measure it is to take the distance between the
+two points plotted in Euclidean space.\\
+\indent A complete Voronoi diagram can be used trivially as a KNN classifier with
+$k=1$; finding the Voronoi region that a test sample belongs to is sufficient,
+as the nearest neighbor is the training sample associated with that region. For
+higher values of $k$, the classification problem is non-trivial. We explore how
+to implement such a system in this paper.
+
+\section{Methods}
+\subsection{Creating Voronoi Diagrams}
+The problem of an efficient algorithm for creating Voronoi diagrams has been
+thoroughly explored in the literature.~\cite{fortune1987sweepline}.
 \begin{equation}
     x=\frac{a_{y}b_{x}\pm\sqrt{a_{y}b_{y}({(a_{y}-b_{y})}^{2}+b_{x}^{2})}}{a_{y}-b_{y}}
 \end{equation}
-
-\hfill mds
- 
-\hfill August 26, 2015
-
-\subsection{Subsection Heading Here}
-Subsection text here.
-
-
-\subsubsection{Subsubsection Heading Here}
-Subsubsection text here.
 
 
 % An example of a floating figure using the graphicx package.
