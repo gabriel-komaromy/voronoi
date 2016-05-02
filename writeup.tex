@@ -116,7 +116,8 @@
 % *** GRAPHICS RELATED PACKAGES ***
 %
 %\ifCLASSINFOpdf\
-  % \usepackage[pdftex]{graphicx}
+\usepackage{graphicx}
+\usepackage{subfig}
   % declare the path(s) where your graphic files are
   % \graphicspath{{../pdf/}{../jpeg/}}
   % and their extensions so you won't have to specify these with
@@ -291,7 +292,7 @@
 
 % *** PDF, URL AND HYPERLINK PACKAGES ***
 %
-%\usepackage{url}
+\usepackage{url}
 % url.sty was written by Donald Arseneau. It provides better support for
 % handling and breaking URLs. url.sty is already installed on most LaTeX
 % systems. The latest version and documentation can be obtained at:
@@ -441,10 +442,73 @@ to implement such a system in this paper.
 \section{Methods}
 \subsection{Creating Voronoi Diagrams}
 The problem of an efficient algorithm for creating Voronoi diagrams has been
-thoroughly explored in the literature.~\cite{fortune1987sweepline}.
+thoroughly explored in the literature. One of the most prominent is the Sweepline
+algorithm introduced by Fortune~\cite{fortune1987sweepline}. Conceptually,
+the Sweepline algorithm moves a line (the eponymous Sweepline) through the plane
+containing the obstacles. In this paper, we will use the convention that the
+sweepline begins as a horizontal line at the obstacle with the highest y-value
+and moves downwards through the rest of the obstacles.
+\subsubsection{Incremental Construction}
+As we sweep down the plane, some obstacles will be above the sweepline and others
+will be below. The half-plane above the sweepline is then further separated
+into a region of points whose nearest obstacle we can be sure of, and a region
+whose points may be closer to an obstacle below the sweepline than to any obstacle
+above the sweepline. The finalized and unknown regions are separated by a
+\emph{beach line}.\\
+\indent The beach line consists of a set of parabolic arcs joined together at
+the intersections of the arcs. An example beach line is shown in Figure~\ref{beachline}.
+Each arc of the beach line has a corresponding obstacle that is the closest point to
+it. Geometrically, the arcs take the form of parabolas because each obstacle is the
+focus and the sweepline is the directrix of a parabola. The points on the parabola
+are equidistant from the focus and the directrix.\\
+\indent The intersections of the beach line arcs are points that will be on Voronoi
+edges, equidistant from the obstacles corresponding to the two arcs meeting at
+that intersection. As the sweepline moves down, the arcs and the intersection do
+as well. A Voronoi edge is created by connecting the point where the intersection
+first occurred to the point where it disappears.\\
+\indent Computationally, it is impossible to move the sweepline down the plane in
+a continuous manner. We have to choose discrete points where the updates to the
+beach line will occur. Fortunately, there are a limited number of points that can
+change the structure of the beach line. We refer to these points as \emph{obstacle
+events} and \emph{circle events}.
+
+\subsubsection{Obstacle Events}
+Obstacle events occur when the sweepline encounters a new obstacle. That obstacle then
+must be inserted into the beachline. We locate the arc that the new obstacle is
+directly under and split it into two parts, one on either side of the new obstacle.
+At the moment when the obstacle is first encountered, it resides exactly on the
+beach line. This means that its ``arc'' in the beach line is actually given by a
+vertical line segment up to the existing arc that it splits. As the sweepline moves
+further down the plane, the arc widens and takes the usual parabolic curve.\\
+\indent In general, two concave-up parabolas given by $y=Ax^{2}+Bx+C$ can have a varying number of points
+of intersection. If the two have equal first derivatives and some vertical offset,
+there are no points of intersection. If the two have equal first derivatives and
+some horizontal offset, there is one point of intersection. If the first derivatives
+are unequal, there are two points of intersection. If the first derivatives are
+equal and there is no offset, there are infinite points of intersection as the
+parabolas are identical.\\
+\indent Fortunately, we only need to consider the cases with one and two points
+of intersection. The case with only a vertical offset is impossible during the
+sweepline algorithm, as a vertical offset means that the first derivatives will
+be different. The case with infinite points of intersection can be averted
+by eliminating repeated obstacles before diagram construction. The problem
+that remains is finding the one or two intersection points.\\
+\indent The equation for parabolas intersections is given in~\cite{schaal} as
+\begin{equation}
+    x=\frac{a_{y}b_{x}-\sqrt{a_{y}b_{y}({(a_{y}-b_{y})}^{2}+b_{x}^{2})}}{a_{y}-b_{y}}
+\end{equation}
+However, this only gives one intersection.
 \begin{equation}
     x=\frac{a_{y}b_{x}\pm\sqrt{a_{y}b_{y}({(a_{y}-b_{y})}^{2}+b_{x}^{2})}}{a_{y}-b_{y}}
 \end{equation}
+
+\begin{figure}[tp]
+    \includegraphics[width=\columnwidth]{beachline}
+    \caption{Example of a beach line. The parabolic arcs are the beach line. The line
+    segments above the beach line are finalized. The dashed line segments are the
+    edges of the true Voronoi diagram that are not yet finalized. Taken
+    from~\cite{compgeometry}.}\label{beachline}
+\end{figure}
 
 
 % An example of a floating figure using the graphicx package.
