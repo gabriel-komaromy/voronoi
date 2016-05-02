@@ -118,6 +118,7 @@
 %\ifCLASSINFOpdf\
 \usepackage{graphicx}
 \usepackage{subfig}
+\usepackage{amsmath}
   % declare the path(s) where your graphic files are
   % \graphicspath{{../pdf/}{../jpeg/}}
   % and their extensions so you won't have to specify these with
@@ -460,7 +461,16 @@ the intersections of the arcs. An example beach line is shown in Figure~\ref{bea
 Each arc of the beach line has a corresponding obstacle that is the closest point to
 it. Geometrically, the arcs take the form of parabolas because each obstacle is the
 focus and the sweepline is the directrix of a parabola. The points on the parabola
-are equidistant from the focus and the directrix.\\
+are equidistant from the focus and the directrix.
+
+\begin{figure}[tp]
+    \includegraphics[width=\columnwidth]{beachline}
+    \caption{Example of a beach line. The parabolic arcs are the beach line. The line
+    segments above the beach line are finalized. The dashed line segments are the
+    edges of the true Voronoi diagram that are not yet finalized. Taken
+    from~\cite{compgeometry}.}\label{beachline}
+\end{figure}
+
 \indent The intersections of the beach line arcs are points that will be on Voronoi
 edges, equidistant from the obstacles corresponding to the two arcs meeting at
 that intersection. As the sweepline moves down, the arcs and the intersection do
@@ -472,7 +482,7 @@ beach line will occur. Fortunately, there are a limited number of points that ca
 change the structure of the beach line. We refer to these points as \emph{obstacle
 events} and \emph{circle events}.
 
-\subsubsection{Obstacle Events}
+\subsubsection{Obstacle Events}\label{obstacle_events}
 Obstacle events occur when the sweepline encounters a new obstacle. That obstacle then
 must be inserted into the beachline. We locate the arc that the new obstacle is
 directly under and split it into two parts, one on either side of the new obstacle.
@@ -480,6 +490,9 @@ At the moment when the obstacle is first encountered, it resides exactly on the
 beach line. This means that its ``arc'' in the beach line is actually given by a
 vertical line segment up to the existing arc that it splits. As the sweepline moves
 further down the plane, the arc widens and takes the usual parabolic curve.\\
+\indent In the special case where a new obstacle appears directly below an existing
+intersection in the beach line, we place the new arc between the two existing arcs
+and do not split either of them.\\
 \indent In general, two concave-up parabolas given by $y=Ax^{2}+Bx+C$ can have a varying number of points
 of intersection. If the two have equal first derivatives and some vertical offset,
 there are no points of intersection. If the two have equal first derivatives and
@@ -493,21 +506,119 @@ sweepline algorithm, as a vertical offset means that the first derivatives will
 be different. The case with infinite points of intersection can be averted
 by eliminating repeated obstacles before diagram construction. The problem
 that remains is finding the one or two intersection points.\\
-\indent The equation for parabolas intersections is given in~\cite{schaal} as
+\indent If the y-values are equal and there is only one intersection, the x-value of that
+intersection is the midpoint between the x-values of the minima of the parabolas.
+The equation for the x-value of intersections of parabolas with different
+y-values and foci $a$ and $b$ is given in~\cite{schaal} as
 \begin{equation}
     x=\frac{a_{y}b_{x}-\sqrt{a_{y}b_{y}({(a_{y}-b_{y})}^{2}+b_{x}^{2})}}{a_{y}-b_{y}}
 \end{equation}
-However, this only gives one intersection.
+However, this only gives one intersection, when we know that there should be two.
+Working backwards through the derivation presented in~\cite{schaal}, we find that the
+equation for both intersections is given by
 \begin{equation}
     x=\frac{a_{y}b_{x}\pm\sqrt{a_{y}b_{y}({(a_{y}-b_{y})}^{2}+b_{x}^{2})}}{a_{y}-b_{y}}
 \end{equation}
+Usefully, in the case where the focus with the lower y-value is on the sweepline,
+the two intersections given by this equation are equal. Additionally, given the
+x-values for the intersections, finding the y-values is simply a matter of plugging
+into the equations for either of the parabolas.
+Note that these equations are only valid after a translation where the y-value of the
+sweepline is subtracted from $a_{y}$ and $b_{y}$, and $\min(a_{x}, b_{x})$ is
+subtracted from $a_{x}$ and $b_{x}$. The opposite translation has to be applied to the
+output intersections~\cite{schaal}.
+
+\subsubsection{Circle Events}
+Circle events are when an arc is consumed by its neighbors and removed from the
+beach line. They are called circle events because the intersection of the Voronoi
+edges occurs at the center of the circle formed by the three points on the beach
+line, as shown in Figure~\ref{circle_event}. Furthermore, the event itself is the
+point on the circle with the lowest y-value; when the sweepline passes this point,
+there can be no other obstacles closer to the intersection.\\
 
 \begin{figure}[tp]
-    \includegraphics[width=\columnwidth]{beachline}
-    \caption{Example of a beach line. The parabolic arcs are the beach line. The line
-    segments above the beach line are finalized. The dashed line segments are the
-    edges of the true Voronoi diagram that are not yet finalized. Taken
-    from~\cite{compgeometry}.}\label{beachline}
+    \includegraphics[width=\columnwidth]{circle_event}
+    \caption{Arcs converging to an intersection. The middle arc will soon be
+    removed from the beach line. Taken from~\cite{mitslides}.}\label{circle_event}
+\end{figure}
+
+\indent However, if an obstacle is encountered within the circle before the
+circle event, the circle event is no longer relevant and is removed from consideration.\\
+\indent Not all sets of three consecutive obstacles have a circle event below them.
+The most common case for this is that with three such obstacles $a$, $b$, and $c$,
+ordered by increasing x-value, $b$ lies below the line segment connecting $a$ and
+$c$. This would mean that the circle event is above $b$, and therefore above the
+current position of the sweepline. Checking for this case amounts to computing the
+signed area of the triangle formed by $a$, $b$, and $c$, given in~\cite{schaal} as
+\begin{equation}
+    A_{signed}=\frac{1}{2}
+    \begin{vmatrix}
+    a_{x} & a_{y} & 1\\
+    b_{x} & b_{y} & 1\\
+    c_{x} & c_{y} & 1\\
+    \end{vmatrix}
+\end{equation}
+If $A_{signed}<0$, then the center of the circle is below $b$.
+Another case where the circle event does not need to be considered is that if
+$a$, $b$, and $c$ are collinear, there is no circle containing all three of them.
+
+\subsection{Data Structures}
+There are two fundamental data structures used in the construction of the Voronoi
+diagram.
+
+\subsubsection{Beach Line}
+The first data structure represents the beach line. Optimally,
+this would be implemented as a balanced binary search tree such as an AVL tree or
+red-black tree. In this tree, leaf nodes represent obstacles and
+the internal nodes represent the intersections between arcs~\cite{mitslides}.\\
+\indent In the interest of ease of implemenation, we instead use a doubly-linked list to
+store the beach line. Nodes in the list contain obstacles, and two adjacent nodes have
+pointers to each other and to the growing Voronoi edge between them. Using a list
+instead of a search tree increases the complexity of locating the arc that a
+new obstacle falls under from $O(\log n)$ to $O(n)$.\\
+\indent In this setup, a node has two adjacent edges, each with an intersection
+at its endpoint. When a node is first encountered by the sweepline, its arc is a
+vertical line, and so only intersects the beach line once. However, the equation
+for intersections in Section~\ref{obstacle_events} returns two copies of this
+intersection. This allows us to create the arcs without having to handle an
+additional case.\\
+\indent An obstacle can have multiple nodes associated with it. Each time the
+obstacle's parabola is split by an obstacle event, the single node containing
+that segment of the arc splits into two. This corresponds to the obstacle's
+Voronoi region gaining an incident edge.\\
+\indent When a circle event occurs, the corresponding obstacle's node is removed
+from the list and its neighbors are joined together, forming an intersection on the
+Voronoi diagram and a new edge leading out of it.
+
+\subsubsection{Event Queue}
+The second data structure is a priority queue containing the events, which we refer to as
+the \emph{event queue}. We implement this using a binary heap, Python's \emph{heapq}.
+Initially, the event queue contains all of the obstacles minus duplicate obstacles,
+beginning with the obstacle with maximal y-value. Ordering ties are broken by
+placing the event with the lower x-value first.
+
+\subsubsection{Interactions}
+There is some overlap between the responsibilities of the beach line and the event
+queue. Both of them keep track of circle events: each node in the beach line
+has an associated circle event, if any, and the event queue contains the
+active circle events in addition to the obstacle events. After each event,
+the nearby nodes in the beach line are examined for circle event updates. This
+includes both adding potential new circle events if a node was added to the
+beach line, and removing circle events if a new obstacle falls inside the
+circle. If a circle event is removed from the beach line, it also is removed
+from the event queue. This is a costly operation because lookup in a heap
+costs $O(n)$.
+
+\section{Results}
+\subsection{Voronoi Diagrams}
+Figure~\ref{voronoi} shows the results of creating a Voronoi diagram with ten
+point obstacles with $x$ and $y$ coordinates randomly selected from a uniform
+distribution between $0$ and $10$. While we did not analytically verify the
+results, the output looks intuitively correct.
+
+\begin{figure}[tp]
+    \includegraphics[width=\columnwidth]{ten_random_points_voronoi}
+    \caption{Voronoi diagram for randomly-generated points}\label{voronoi}
 \end{figure}
 
 
