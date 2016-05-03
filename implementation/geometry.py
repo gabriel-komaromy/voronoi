@@ -37,7 +37,6 @@ def shift_coordinates(func):
 
 @shift_coordinates
 def breakpoint(a, b, sweep_y):
-    # print 'finding breakpoint: ' + str(a) + ', ' + str(b)
     # http://www.kmschaal.de/Diplomarbeit_KevinSchaal.pdf
 
     for point in [a, b]:
@@ -60,11 +59,6 @@ def breakpoint(a, b, sweep_y):
             (numerator_beginning - numerator_end) / denom,
             (numerator_beginning + numerator_end) / denom,
             ]
-        """
-        print 'a: ' + str(a)
-        print 'b: ' + str(b)
-        print 'sweep: ' + str(sweep_y)
-        """
 
         if intersections_x[0] != intersections_x[1]:
             intersections_y = [
@@ -76,20 +70,11 @@ def breakpoint(a, b, sweep_y):
             # vertical line to other parabola
             pol = point_off_line(a, b)
             intersections_y = [parabola_y(pol, intersections_x[0])] * 2
-            """
-            print intersections_x[0]
-            print parabola_y(pol, intersections_x[0])
-            """
 
         output_list = list(sort_points(
             Point(intersections_x[0], intersections_y[0]),
             Point(intersections_x[1], intersections_y[1]),
             ))
-        """
-        assert output_list[0].x <= output_list[1].x,\
-            "break points not sorted: " + str(output_list[0]) + ', ' +\
-            str(output_list[1])
-            """
 
     else:
         breakpoint_x = float(b.x - a.x) / 2
@@ -151,14 +136,8 @@ def collinear(a, b, c):
 def circle_center_below(a, b, c):
     """Checks that the circle center is below the middle point, still could
     be above the other two or the sweepline"""
-    """
-    print 'a: ' + str(a)
-    print 'b: ' + str(b)
-    print 'c: ' + str(c)
-    """
     if a == c:
         return False
-    # assert a.x < b.x < c.x, "points must have increasing x"
     signed_area = 0.5 * (a.x * b.y + c.x * a.y + b.x * c.y - c.x * b.y -
                          a.y * b.x - a.x * c.y)
     return signed_area < 0
@@ -249,23 +228,12 @@ def intersects(edge1, edge2):
 
 def passes_through(edge1, edge2):
     if intersects(edge1, edge2):
-        """
-        print 'edge 1 start: ' + str(edge1.start_point)
-        print 'edge 1 end: ' + str(edge1.end_point)
-        print 'edge 2 start: ' + str(edge2.start_point)
-        print 'edge 2 end: ' + str(edge2.end_point)
-        """
         start_start = edge1.start_point == edge2.start_point
-        # print 'start_start: ' + str(start_start)
         start_end = edge1.start_point == edge2.end_point
-        # print 'start_end: ' + str(start_end)
         end_start = edge1.end_point == edge2.start_point
-        # print 'end_start: ' + str(end_start)
         end_end = edge1.end_point == edge2.end_point
-        # print 'end_end: ' + str(end_end)
         has_equal_points = start_start or start_end or\
             end_start or end_end
-        # print 'returning: ' + str(not has_equal_points)
         return not has_equal_points
     else:
         return False

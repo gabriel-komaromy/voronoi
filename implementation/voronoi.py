@@ -2,7 +2,6 @@ import heapq
 import random
 
 from data_structures import OpenList
-# from data_structures import EdgesList
 from data_structures import SiteNode
 from data_structures import Edge
 from geometry import Point
@@ -22,21 +21,15 @@ def create_diagram(sites):
     voronoi_regions = {}
 
     open_list = OpenList()
-    # edges_list = EdgesList()
     edges_list = []
 
     while ordered_points:
         heapq.heapify(ordered_points)
-        """
-        for edge in edges_list:
-            print edge
-            """
         current_point = next_point(ordered_points)
         heapq.heapify(ordered_points)
 
         open_list.update_moving_edges(current_point.y)
         heapq.heapify(ordered_points)
-        # print '\nEXPANDING: ' + str(current_point) + "\n"
 
         sweep_x = current_point.x
         sweep_y = current_point.y
@@ -55,19 +48,10 @@ def create_diagram(sites):
                 sweep_x,
                 sweep_y,
                 )
-            """
-            print 'ORDERED POINTS BEFORE HEAPIFY:'
-            print_points(ordered_points)
-            """
             heapq.heapify(ordered_points)
-            """
-            print 'ORDERED POINTS AFTER HEAPIFY:'
-            print_points(ordered_points)
-            """
 
         elif current_point.point_type is PointType.CIRCLE_EVENT:
             middle_node = current_point.event_node
-            # print 'deleting because of circle: ' + str(middle_node.site)
             middle_site = middle_node.site
             left_node = middle_node.previous_node
             left_site = left_node.site
@@ -113,13 +97,6 @@ def create_diagram(sites):
         else:
             raise ValueError("unexpected point type")
 
-        """
-        beach_start = open_list.start
-        while beach_start is not None:
-            print 'beach: ' + str(beach_start.site)
-            beach_start = beach_start.next_node
-            """
-
         heapq.heapify(ordered_points)
 
     edges_list = post_processing(
@@ -137,10 +114,6 @@ def post_processing(edges_list, open_list, sweep_y):
     remaining_node = open_list.start
     while remaining_node is not None:
         if remaining_node.right_edge is not None:
-            """
-            print 'remaining: ' + str(remaining_node.site)
-            print remaining_node.right_edge
-            """
             current_edge = remaining_node.right_edge
             if current_edge.end_point is None:
                 breakpoints = breakpoint(
@@ -167,14 +140,11 @@ def check_intersections(breakpoints, current_edge, edges_list):
                     )
                 candidate_new_edge.end_point = new_point
                 intersected = False
-                # print 'candidate: ' + str(candidate_new_edge)
                 for edge in edges_list:
-                    # print 'edge: ' + str(edge)
                     if passes_through(
                             edge,
                             candidate_new_edge,
                             ):
-                        # print 'intersects'
                         intersected = True
                 if not intersected:
                     current_edge.end_point = new_point
@@ -191,32 +161,10 @@ def update_circle_points(new_node, ordered_points, sweep_x, sweep_y):
     if relevant_nodes[3] is not None:
         relevant_nodes[4] = relevant_nodes[3].next_node
 
-    """
-    for index, node in enumerate(relevant_nodes):
-        if node is not None:
-            print 'relevant: ' + str(node.site)
-        else:
-            print 'none at relevant: ' + str(index)
-            """
-
     for middle_node in xrange(1, 4):
-        """
-        if relevant_nodes[middle_node] is not None:
-            print 'middle: ' + str(relevant_nodes[middle_node].site)
-        print 'checking: '
-        print relevant_nodes[middle_node - 1]
-        print relevant_nodes[middle_node]
-        print relevant_nodes[middle_node + 1]
-        """
         if relevant_nodes[middle_node - 1] is not None and\
                 relevant_nodes[middle_node + 1] is not None:
 
-            """
-            print 'possible circle from: at index ' + str(middle_node)
-            print relevant_nodes[middle_node - 1].site
-            print relevant_nodes[middle_node].site
-            print relevant_nodes[middle_node + 1].site
-            """
             a = relevant_nodes[middle_node - 1]
             b = relevant_nodes[middle_node]
             c = relevant_nodes[middle_node + 1]
@@ -224,26 +172,14 @@ def update_circle_points(new_node, ordered_points, sweep_x, sweep_y):
 
             if circle_center_below(a.site, b.site, c.site):
                 event, center = circle_event(a.site, b.site, c.site)
-                """
-                print 'event y: ' + str(event.y)
-                print 'center: ' + str(center)
-                print 'min y: ' + str(sweep_y)
-                print 'previous event: ' + str(previous_event)
-                """
                 if event.y > sweep_y:
                     pass
                 elif event.y == sweep_y and event.x <= sweep_x:
                     pass
                 else:
-                    """
-                    print 'event: ' + str(event)
-                    print 'center: ' + str(center)
-                    print 'Event: ' + str(event)
-                    """
                     event.event_node = b
                     if previous_event is None:
                         b.circle_minimum = event
-                        # print 'adding circle point' + str(event)
                         ordered_points.append(event)
                     else:
                         if event != previous_event:
@@ -254,10 +190,6 @@ def update_circle_points(new_node, ordered_points, sweep_x, sweep_y):
             else:
                 if b.circle_minimum is not None:
                     if b.circle_minimum in ordered_points:
-                        """
-                        print 'removing circle point' + str(b.circle_minimum)
-                        print_points(ordered_points)
-                        """
                         ordered_points.remove(b.circle_minimum)
                     b.circle_minimum = None
         elif relevant_nodes[middle_node] is not None:
@@ -266,10 +198,6 @@ def update_circle_points(new_node, ordered_points, sweep_x, sweep_y):
             relevant_nodes[middle_node].circle_minimum = None
 
     heapq.heapify(ordered_points)
-    """
-    print 'ordered points after circle update:'
-    print_points(ordered_points)
-    """
     return ordered_points
 
 
@@ -281,14 +209,12 @@ def insert_site(open_list, edges_list, new_site, voronoi_regions):
     new_node = SiteNode(new_site)
     sweep_y = new_site.y
     if open_list.start is None:
-        # print 'making new start'
         open_list.start = new_node
 
     else:
         first_node = open_list.start
         if first_node.right_edge is not None:
             if first_node.right_endpoint().x > new_site.x:
-                # print 'inserting before first node right endpoint'
                 new_left_node, new_right_node, edges_list, voronoi_regions = \
                     split_node(
                         open_list,
@@ -307,7 +233,6 @@ def insert_site(open_list, edges_list, new_site, voronoi_regions):
 
                 while True:
                     if current_node.next_node is None:
-                        # print 'inserting after last arc'
                         new_left_node, new_right_node, edges_list,\
                             voronoi_regions = split_node(
                                 open_list,
@@ -325,11 +250,9 @@ def insert_site(open_list, edges_list, new_site, voronoi_regions):
 
                     if right_endpoint.x < new_site.x:
                         current_node = current_node.next_node
-                        # print 'continuing'
                         continue
 
                     elif right_endpoint.x > new_site.x:
-                        # print 'inserting before: ' + str(right_endpoint)
                         new_left_node, new_right_node, edges_list,\
                             voronoi_regions = split_node(
                                 open_list,
@@ -345,7 +268,6 @@ def insert_site(open_list, edges_list, new_site, voronoi_regions):
                         break
 
                     else:
-                        # print 'right below breakpoint'
                         """new site lies directly beneath a current breakpoint,
                         can't really use the function unfortunately"""
                         new_center_node = SiteNode(new_site)
@@ -374,7 +296,6 @@ def insert_site(open_list, edges_list, new_site, voronoi_regions):
                         break
 
         else:
-            # print 'inserting at first node right edge'
             new_left_node, new_right_node, edges_list, voronoi_regions =\
                 split_node(
                     open_list,
@@ -384,11 +305,6 @@ def insert_site(open_list, edges_list, new_site, voronoi_regions):
                     sweep_y,
                     voronoi_regions,
                     )
-            """
-            print new_left_node.site
-            print new_left_node.next_node.site
-            print new_right_node.site
-            """
             new_node = new_left_node.next_node
             open_list.start = new_left_node
 
@@ -410,10 +326,6 @@ def split_node(
             current_site,
             sweep_y,
             )
-        """
-        for point in breakpoints:
-            print point
-            """
 
         new_center_node = SiteNode(new_site)
 
@@ -481,8 +393,4 @@ if __name__ == '__main__':
 
     made_points = map(make_point, points)
     edges, voronoi = create_diagram(made_points)
-    """
-    for edge in output:
-        print edge
-        """
     plot_diagram(edges, made_points)

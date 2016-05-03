@@ -1,50 +1,10 @@
 import geometry
 
 
-class EdgesList(object):
-    def __init__(self):
-        self.start = None
-        self.end = self.start
-
-    def insert(self, start_point, site):
-        if self.start is None:
-            self.start = EdgeNode(
-                start_point,
-                None,
-                site,
-                )
-            self.end = self.start
-            return self.start
-
-        else:
-            new_node = EdgeNode(start_point, self.end, site)
-            self.end = new_node
-            return new_node
-
-
 class Edge(object):
     def __init__(self, start_point):
         self.start_point = start_point
         self.end_point = None
-        self.finalized = False
-
-    def __str__(self):
-        return str(self.start_point) + " to " + str(self.end_point)
-
-
-class EdgeNode(object):
-    def __init__(self, edge):
-        self.edge = edge
-        self.previous_edge = None
-        self.next_edge = None
-        if self.previous_edge is not None:
-            self.previous_edge.next_edge = self
-        self.twin = None
-        """
-        if self.twin is not None:
-            self.twin.twin = self
-            """
-        self.site = None
         self.finalized = False
 
     def __str__(self):
@@ -63,11 +23,6 @@ class OpenList(object):
         else:
             next_node = current_node.next_node
             while next_node is not None:
-                """
-                print 'sweep y: ' + str(sweep_y)
-                print 'current: ' + str(current_node.site)
-                print 'next: ' + str(next_node.site)
-                """
                 intersections = geometry.breakpoint(
                     current_node.site,
                     next_node.site,
