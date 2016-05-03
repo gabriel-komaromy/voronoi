@@ -609,6 +609,44 @@ circle. If a circle event is removed from the beach line, it also is removed
 from the event queue. This is a costly operation because lookup in a heap
 costs $O(n)$.
 
+\subsection{Nearest Neighbors}
+Given a complete and robust Voronoi diagram, KNN classification can be done
+in a similar manner to a breadth-first search. To classify a test point, the
+first step is to locate the Voronoi region that it resides in. The obstacle
+corresponding to that region is the nearest neighbor. If $k>1$, the obstacles
+in regions adjacent to the nearest neighbor are added to a list. The second
+nearest neighbor will be the closest obstacle in the list. Additional neighbors
+can be added in a similar manner.\\
+\indent Classification in this manner requires that edges have knowledge of
+the obstacles on both sides of them, which our Voronoi implementation does
+not. We output a list of edges and a dictionary mapping each obstacle to
+the edges surrounding its region.\\
+\indent We modify the nearest-neighbor implementation
+as follows: after the nearest neighbor is found, it is removed from the list
+of obstacles and the Voronoi diagram is re-calculated. The second nearest
+neighbor is now the obstacle for the region that the test point resides in.
+This can be repeated for the $k$ nearest neighbors. This impacts
+the computational complexity of the classification, as creating $k$ Voronoi
+diagrams increases the runtime by a factor of $k$.\\
+\indent The standard Voronoi diagram has at its perimeter a number of edges
+that extend infinitely in the plane. It is difficult to efficiently calculate
+whether a point lies in one of these semi-bounded regions. Because of this,
+we take a post-processing step for the Voronoi diagram that imposes a bounding
+box around the obstacles; all the obstacles and intersections lie within
+the box, and any test points for classification must as well.\\
+\indent An additional post-processing step is to sort the Voronoi regions
+by the minimum value of $y$ of any point in the region. This allows us to
+do a binary search to find the region with the highest $y$ that is not
+entirely higher than the test point. From that point, we proceed linearly
+through the regions in order of decreasing highest $y$, checking whether
+the test point belongs in that region, until the correct region is found.
+This heuristic improves the runtime
+of the search for the region that the point falls into once we have the
+diagram, as all regions with higher minimum $y$ can be ignored. The
+sorting step itself negates at least some of the runtime improvements, but
+since identifying whether an object is in a region is somewhat expensive
+it is still better  in this manner.
+
 \section{Results}
 \subsection{Voronoi Diagrams}
 Figure~\ref{voronoi} shows the results of creating a Voronoi diagram with fifty
