@@ -2,13 +2,20 @@ import geometry
 
 
 class Edge(object):
-    def __init__(self, start_point):
+    def __init__(self, start_point, end_point=None):
         self.start_point = start_point
-        self.end_point = None
+        self.end_point = end_point
         self.finalized = False
 
     def __str__(self):
         return str(self.start_point) + " to " + str(self.end_point)
+
+    def __eq__(self, other):
+        return self.start_point == other.start_point and self.end_point\
+            == other.end_point
+
+    def __ne__(self, other):
+        return not self == other
 
 
 class OpenList(object):

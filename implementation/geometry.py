@@ -211,6 +211,27 @@ class Point(object):
         return hash(str(self))
 
 
+# stackoverflow.com/questions/20677795/how-do-i-compute-the-intersection-point-of-two-lines-in-python
+def intersection(edge1, edge2):
+    A, B = edge1.start_point, edge1.end_point
+    C, D = edge2.start_point, edge2.end_point
+
+    xdiff = (A.x - B.x, C.x - D.x)
+    ydiff = (A.y - B.y, C.y - D.y)
+
+    def det(a, b):
+        return a[0] * b[1] - a[1] * b[0]
+
+    div = det(xdiff, ydiff)
+    if div == 0:
+        raise ValueError("Edges do not intersect")
+
+    d = (det((A.x, A.y), (B.x, B.y)), det((C.x, C.y), (D.x, D.y)))
+    x = det(d, xdiff) / div
+    y = det(d, ydiff) / div
+    return Point(x, y)
+
+
 def intersects(edge1, edge2):
     A = edge1.start_point
     B = edge1.end_point
