@@ -8,6 +8,7 @@ from data_structures import Edge
 from geometry import Point
 from geometry import intersects
 from geometry import intersection
+from geometry import distance
 from plots import plot_diagram
 
 
@@ -45,8 +46,15 @@ class NearestNeighborsClassifier(object):
 
         boxed_tuples = map(self.make_box, site_edges)
         sorted_tuples = sorted(boxed_tuples, key=lambda bt: lowest_y(bt))
+        self.st = sorted_tuples
+        print 'classified: ' + str(self.classify(Point(5, 5)))
+        """
         for st in sorted_tuples:
             print lowest_y(st)
+        for st in sorted_tuples:
+            print in_region(Point(5, 5), st[1])
+            """
+
         new_edges = []
         for t in boxed_tuples:
             new_edges += t[1]
@@ -158,7 +166,9 @@ class NearestNeighborsClassifier(object):
         return (site, edges)
 
     def classify(self, test_point):
-        pass
+        nearest_tuple = min(
+            self.st, key=lambda tup: distance(tup[0], test_point))
+        return nearest_tuple[0]
 
 
 def lowest_y(site_edge_tuple):
@@ -177,6 +187,90 @@ def make_tuples(sites_edges):
     for site, edges_list in zip(sites_edges.keys(), sites_edges.values()):
         tuples.append((site, edges_list))
     return tuples
+
+
+def slope(edge):
+    if edge.start_point.x == edge.end_point.x:
+        return None
+    return (edge.end_point.y - edge.start_point.y) / (
+        edge.end_point.x - edge.start_point.x)
+
+
+def join_edges(edge1, edge2):
+    first_start = edge1.start_point
+    first_end = edge1.end_point
+    second_start = edge2.start_point
+    second_end = edge2.end_point
+    if first_start == second_start:
+        new_edge = Edge(first_end, end_point=second_end)
+    elif first_start == second_end:
+        new_edge = Edge(first_end, end_point=second_start)
+    elif first_end == second_start:
+        new_edge = Edge(first_start, end_point=second_end)
+    elif first_end == second_end:
+        new_edge = Edge(first_start, end_point=second_start)
+    else:
+        raise ValueError("no common corner")
+    return new_edge
+
+
+def in_region(test_point, edges):
+    slopes = {}
+
+    for edge in edges:
+        edge_slope = slope(edge)
+        if edge_slope is not None:
+            edge_slope = truncate(edge_slope, 5)
+        if edge_slope not in slopes:
+            slopes[edge_slope] = []
+        slopes[edge_slope].append(edge)
+
+    joined_edges = []
+    for common_slope, common_edges in zip(slopes.keys(), slopes.values()):
+        if len(common_edges) == 2:
+            print 'joining equal slopes'
+            new_edge = join_edges(common_edges[0], common_edges[1])
+            joined_edges.append(new_edge)
+        else:
+            for edge in common_edges:
+                joined_edges.append(edge)
+
+    cnt = Counter()
+    for edge in joined_edges:
+        print 'start: ' + str(edge.start_point)
+        print 'end: ' + str(edge.end_point)
+        cnt[edge.start_point] += 1
+        cnt[edge.end_point] += 1
+
+    all_vertices = cnt.keys()
+    nvert = len(all_vertices)
+    i = 0
+    j = nvert - 1
+    count = False
+    while i < nvert:
+        print 'count: ' + str(count)
+        igt = all_vertices[i] > test_point.y
+        jgt = all_vertices[j] > test_point.y
+        if igt != jgt:
+            numerator = (all_vertices[j].x - all_vertices[i].x) * (
+                test_point.y - all_vertices[i].y)
+            denominator = (all_vertices[j].y - all_vertices[i].y)
+            testx = test_point.x < ((
+                numerator / denominator) + all_vertices[i].x)
+            if testx:
+                count = not count
+        j = i
+        i += 1
+    return count
+
+
+def truncate(f, n):
+    '''Truncates/pads a float f to n decimal places without rounding'''
+    s = '{}'.format(f)
+    if 'e' in s or 'E' in s:
+        return "%.*f" % (n, f)
+    i, p, d = s.partition('.')
+    return '.'.join([i, (d+'0'*n)[:n]])
 
 
 if __name__ == '__main__':

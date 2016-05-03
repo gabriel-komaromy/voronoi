@@ -372,7 +372,10 @@ gre5@case.edu}
 % As a general rule, do not put math, special symbols or citations
 % in the abstract
 \begin{abstract}
-The abstract goes here.
+    We create Voronoi diagrams for two-dimensional maps with point obstacles.
+    We explore the algebraic and geometric intricacies of the Sweepline algorithm used
+    to build the diagrams. We review the concept of a k-Nearest-Neighbors classifier
+    and use the completed Voronoi diagram to find nearest neighbors.
 \end{abstract}
 
 % no keywords
@@ -393,7 +396,7 @@ The abstract goes here.
 
 
 \section{Introduction}
-Robotic motion planning is the problem of finding a path from the starting
+\noindent\ Robotic motion planning is the problem of finding a path from the starting
 configuration of a robot to some goal configuration that does not collide
 with any obstacles. In the case where the positions of the obstacles are
 known \emph{a priori} but the start and goal configurations are not, it
@@ -405,7 +408,7 @@ between the two edges in free space, the roadmap should have a path between
 them.
 
 \subsection{Voronoi Diagrams}
-\emph{Voronoi diagrams} are a class of roadmap. The basic definition
+\noindent\ \emph{Voronoi diagrams} are a class of roadmap. The basic definition
 of a Voronoi diagram is that its edges represent the points that are
 equidistant from the closest obstacles to that point. This means that each
 edge represents the path that maintains the maximal separation from two
@@ -422,7 +425,7 @@ In this paper, we focus on two-dimensional environments with obstacles that
 are points.
 
 \subsection{Nearest-Neighbors Classification}
-Voronoi diagrams have other uses beyond robot motion planning.
+\noindent\ Voronoi diagrams have other uses beyond robot motion planning.
 One application, which we explore in this paper, is to use a Voronoi diagram
 to build a \emph{k-Nearest-Neighbors (KNN) classifier}. KNN classifiers come from
 the field of machine learning. The classification problem is as follows:
@@ -442,15 +445,19 @@ to implement such a system in this paper.
 
 \section{Methods}
 \subsection{Creating Voronoi Diagrams}
-The problem of an efficient algorithm for creating Voronoi diagrams has been
-thoroughly explored in the literature. One of the most prominent is the Sweepline
+\noindent\ The problem of an efficient algorithm for creating Voronoi diagrams has been
+thoroughly explored in the literature. A naive method is to find the half-planes
+separating each obstacle and take the intersection of them to find a region.
+While this is relatively easy to implement, there are other algorithms that
+offer superior performance results~\cite{mitslides}. One of the most prominent
+is the Sweepline
 algorithm introduced by Fortune~\cite{fortune1987sweepline}. Conceptually,
 the Sweepline algorithm moves a line (the eponymous Sweepline) through the plane
 containing the obstacles. In this paper, we will use the convention that the
 sweepline begins as a horizontal line at the obstacle with the highest y-value
 and moves downwards through the rest of the obstacles.
 \subsubsection{Incremental Construction}
-As we sweep down the plane, some obstacles will be above the sweepline and others
+\noindent\ As we sweep down the plane, some obstacles will be above the sweepline and others
 will be below. The half-plane above the sweepline is then further separated
 into a region of points whose nearest obstacle we can be sure of, and a region
 whose points may be closer to an obstacle below the sweepline than to any obstacle
@@ -483,7 +490,7 @@ change the structure of the beach line. We refer to these points as \emph{obstac
 events} and \emph{circle events}.
 
 \subsubsection{Obstacle Events}\label{obstacle_events}
-Obstacle events occur when the sweepline encounters a new obstacle. That obstacle then
+\noindent\ Obstacle events occur when the sweepline encounters a new obstacle. That obstacle then
 must be inserted into the beachline. We locate the arc that the new obstacle is
 directly under and split it into two parts, one on either side of the new obstacle.
 At the moment when the obstacle is first encountered, it resides exactly on the
@@ -529,7 +536,7 @@ subtracted from $a_{x}$ and $b_{x}$. The opposite translation has to be applied 
 output intersections~\cite{schaal}.
 
 \subsubsection{Circle Events}
-Circle events are when an arc is consumed by its neighbors and removed from the
+\noindent\ Circle events are when an arc is consumed by its neighbors and removed from the
 beach line. They are called circle events because the intersection of the Voronoi
 edges occurs at the center of the circle formed by the three points on the beach
 line, as shown in Figure~\ref{circle_event}. Furthermore, the event itself is the
@@ -563,11 +570,11 @@ Another case where the circle event does not need to be considered is that if
 $a$, $b$, and $c$ are collinear, there is no circle containing all three of them.
 
 \subsection{Data Structures}
-There are two fundamental data structures used in the construction of the Voronoi
+\noindent\ There are two fundamental data structures used in the construction of the Voronoi
 diagram.
 
 \subsubsection{Beach Line}
-The first data structure represents the beach line. Optimally,
+\noindent\ The first data structure represents the beach line. Optimally,
 this would be implemented as a balanced binary search tree such as an AVL tree or
 red-black tree. In this tree, leaf nodes represent obstacles and
 the internal nodes represent the intersections between arcs~\cite{mitslides}.\\
@@ -591,14 +598,14 @@ from the list and its neighbors are joined together, forming an intersection on 
 Voronoi diagram and a new edge leading out of it.
 
 \subsubsection{Event Queue}
-The second data structure is a priority queue containing the events, which we refer to as
+\noindent\ The second data structure is a priority queue containing the events, which we refer to as
 the \emph{event queue}. We implement this using a binary heap, Python's \emph{heapq}.
 Initially, the event queue contains all of the obstacles minus duplicate obstacles,
 beginning with the obstacle with maximal y-value. Ordering ties are broken by
 placing the event with the lower x-value first.
 
 \subsubsection{Interactions}
-There is some overlap between the responsibilities of the beach line and the event
+\noindent\ There is some overlap between the responsibilities of the beach line and the event
 queue. Both of them keep track of circle events: each node in the beach line
 has an associated circle event, if any, and the event queue contains the
 active circle events in addition to the obstacle events. After each event,
@@ -609,8 +616,8 @@ circle. If a circle event is removed from the beach line, it also is removed
 from the event queue. This is a costly operation because lookup in a heap
 costs $O(n)$.
 
-\subsection{Nearest Neighbors}
-Given a complete and robust Voronoi diagram, KNN classification can be done
+\subsection{Nearest Neighbors}\label{knn}
+\noindent\ Given a complete and robust Voronoi diagram, KNN classification can be done
 in a similar manner to a breadth-first search. To classify a test point, the
 first step is to locate the Voronoi region that it resides in. The obstacle
 corresponding to that region is the nearest neighbor. If $k>1$, the obstacles
@@ -644,21 +651,50 @@ This heuristic improves the runtime
 of the search for the region that the point falls into once we have the
 diagram, as all regions with higher minimum $y$ can be ignored. The
 sorting step itself negates at least some of the runtime improvements, but
-since identifying whether an object is in a region is somewhat expensive
-it is still better  in this manner.
+in a better classification scheme (search within a diagram rather than
+re-calculating the diagram) it would likely be worth the one-time costs.
 
 \section{Results}
 \subsection{Voronoi Diagrams}
-Figure~\ref{voronoi} shows the results of creating a Voronoi diagram with fifty
+\noindent\ Figure~\ref{voronoi} shows the results of creating a Voronoi diagram with fifty
 point obstacles with $x$ and $y$ coordinates randomly selected from a uniform
 distribution between $0$ and $10$. While we did not analytically verify the
-results, the output looks intuitively correct.
+results, the output looks intuitively correct. Unfortunately, there is a latent
+bug in our implementation that causes an error with probability proportional
+to the number of obstacles, so this is close to the upper limit of the problem
+size that we can currently generate results for.
 
 \begin{figure}[tp]
     \includegraphics[width=\columnwidth]{50}
-    \caption{Voronoi diagram for randomly-generated points}\label{voronoi}
+    \caption{Voronoi diagram for fifty randomly-generated points in a 10-by-10
+    box}\label{voronoi}
 \end{figure}
 
+\subsection{Nearest Neighbors}
+\noindent\ As a result of the aforementioned issues, testing the nearest-neighbors
+classification on any real dataset is not feasible; training generally requires
+significantly more than fifty input points. However, we are able to produce the
+$k$ nearest neighbors to an input point, for values of $k$ up to about $10$.
+This means that the theoretical challenges are mostly handled. Creating a more
+robust classifier would be mostly a matter of scaling and some amount of
+debugging. As mentioned in Section~\ref{knn}, the algorithm that we used
+to find the neighbors was fairly inefficient, but on such a small dataset this
+did not impose any noticeable runtime degradation.
+
+\section{Discussion}
+\noindent\ Our results are generally correct, but we wish that we could have
+implemented the most efficient algorithms and data structures for the diagram
+construction and KNN classification. During construction, we would prefer to
+have used a balanced binary tree rather than a doubly-linked list for the beach
+line. In the classification step, theoretical complexity improvements would have
+to be taken from modified data structures created during the diagram construction.
+If the edges list had included the vertices at either end of the edge, we could
+have made improvements in the time to find the region that a point belongs to.
+If the edges list had included the obstacles for the regions incident to the
+edge, we could have done an exhaustive search starting from the nearest neighbor
+rather than re-creating the Voronoi diagram. These improvements are theoretically
+simple to implement but we did not consider them during implementation of the
+Sweepline algorithm and lacked sufficient time to modify it at the end.
 
 % An example of a floating figure using the graphicx package.
 % Note that \label must occur AFTER (or within) \caption.
@@ -755,12 +791,13 @@ results, the output looks intuitively correct.
 % \fnbelowfloat command of the stfloats package.
 
 
-
-
 \section{Conclusion}
-The conclusion goes here.
-
-
+We successfully implemented a Voronoi diagram algorithm for point
+obstacles in two dimensions. While there exist easier Voronoi algorithms
+to implement, the Sweepline algorithm was interesting geometrically
+and promises good performance results. We used the completed Voronoi
+diagram to create a k-Nearest-Neighbors classifier that runs correctly
+on toy datasets.
 
 
 % conference papers do not normally have an appendix
