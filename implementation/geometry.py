@@ -207,6 +207,7 @@ class Point(object):
         self.y = y
         self.point_type = point_type
         self.event_node = None
+        self.weight = None
 
     def __lt__(self, other):
         if self.y != other.y:
@@ -248,21 +249,23 @@ def intersects(edge1, edge2):
 
 def passes_through(edge1, edge2):
     if intersects(edge1, edge2):
+        """
         print 'edge 1 start: ' + str(edge1.start_point)
         print 'edge 1 end: ' + str(edge1.end_point)
         print 'edge 2 start: ' + str(edge2.start_point)
         print 'edge 2 end: ' + str(edge2.end_point)
+        """
         start_start = edge1.start_point == edge2.start_point
-        print 'start_start: ' + str(start_start)
+        # print 'start_start: ' + str(start_start)
         start_end = edge1.start_point == edge2.end_point
-        print 'start_end: ' + str(start_end)
+        # print 'start_end: ' + str(start_end)
         end_start = edge1.end_point == edge2.start_point
-        print 'end_start: ' + str(end_start)
+        # print 'end_start: ' + str(end_start)
         end_end = edge1.end_point == edge2.end_point
-        print 'end_end: ' + str(end_end)
+        # print 'end_end: ' + str(end_end)
         has_equal_points = start_start or start_end or\
             end_start or end_end
-        print 'returning: ' + str(not has_equal_points)
+        # print 'returning: ' + str(not has_equal_points)
         return not has_equal_points
     else:
         return False
