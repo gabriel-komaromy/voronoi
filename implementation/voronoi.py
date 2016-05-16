@@ -1,5 +1,5 @@
 import heapq
-import random
+# import random
 
 from data_structures import OpenList
 from data_structures import SiteNode
@@ -373,23 +373,25 @@ def print_points(point_list):
 
 if __name__ == '__main__':
     num_points = 10
+    """
     points = []
     for _ in xrange(num_points):
         point = (random.uniform(0, 10), random.uniform(0, 10))
         print point
         points.append(point)
-    """
-    points = [
-        (0, 10),
-        (4, 7),
-        (5, 5),
-        (3, 3),
-        (9, 0),
-        (3, 5),
-        (2, 1),
-        (7, 9),
-        ]
         """
+    points = [
+        (3.275661885046801, 3.0222362547546955),
+        (1.3877360795680072, 7.053142850672501),
+        (2.1880080423526884, 8.123687279692929),
+        (9.954413013349567, 8.15572399707384),
+        (1.0391367560749831, 4.549779494418429),
+        (5.3856661554554455, 6.377200870511951),
+        (0.2198910037649937, 9.317312159668973),
+        (4.04799141544917, 0.9749349934132701),
+        (0.1256612482931252, 2.7451945294930447),
+        (3.488035475641953, 0.5303251310648605),
+        ]
 
     made_points = map(make_point, points)
     edges, voronoi = create_diagram(made_points)

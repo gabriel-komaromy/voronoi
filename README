@@ -1,0 +1,1 @@
+This is a project for my Algorithmic Robotics class. I implemented Voronoi diagrams in two dimensions using the Sweepline algorithm, and a framework for nearest-neighbors search using the diagram.
